@@ -191,9 +191,10 @@ endpoint, not just a web server:
 ### Optional ambient status face (phase-2)
 
 A small display on the Pi gives it a calm, glanceable face - "pendant 72%,
-streaming", "backup complete, safe to remove", "last event 2 min ago",
-today's object count - no interaction, no cloud, just proof it is alive and
-healthy. Recommended pick: a small **e-ink** panel (Pimoroni Badger-class or
+streaming", "storage 38% used (~5 months left)", "backup complete, safe to
+remove", "last event 2 min ago", today's object count - no interaction, no
+cloud, just proof it is alive and healthy. The two most useful lines are
+pendant charge and storage headroom. Recommended pick: a small **e-ink** panel (Pimoroni Badger-class or
 an e-ink HAT). E-ink holds its text with the Pi asleep, sips no power, and
 suits an always-on home object better than a glowing screen; a colour TFT is
 a fine alternative if you prefer livelier status. This is the add-on to reach
@@ -470,6 +471,23 @@ design must answer both honestly:
 The principle: WhereWatch never widens the trust boundary to solve
 reliability. Redundancy stays inside the home and inside the owner's
 control, or it does not happen.
+
+## Storage: how much, how long
+
+The base's SSD holds the stills + the tiny DB. Rough math:
+
+- A face-blurred 5MP JPEG is ~1-2 MB. WhereWatch does NOT keep every frame -
+  motion-gating + dedup means it keeps a still when something actually
+  changes/places, ballpark a few hundred to ~1-2k keeper stills a day.
+- That is ~0.5-2 GB/day of photos. The episode DB itself (rows + FTS index)
+  is trivial - megabytes even over a year; text is cheap, pixels are not.
+
+So a **256 GB SSD** holds roughly **4-12 months** of full-photo history
+before retention prunes anything, and a **512 GB** doubles that. With a
+30-day retention window you would only ever use ~15-60 GB. RAM (16 GB) is for
+running the vision model + Frigate, not storage - the two are separate: 16 GB
+memory, 256-512 GB disk. Plenty of headroom; the display just shows the used
+percentage so you are never surprised.
 
 ## Vision model vs reasoning model
 
