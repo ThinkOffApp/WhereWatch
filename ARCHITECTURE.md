@@ -285,6 +285,36 @@ unlinking the photos (and the FTS delete-trigger keeps the index honest).
   frames are authenticated (HMAC) and the channel encrypted; replayed
   frames are rejected by timestamp+nonce.
 
+## Pi security: hardened by default, hack-tested before shipping
+
+The Pi holds an episodic memory of a home - a high-value target, so the
+threat model is written down and TESTED, not assumed.
+
+Baseline hardening (ships as the default image):
+- Web UI binds to LAN only; no port forwarding, no UPnP, nothing listens on
+  WAN. Remote access, if ever offered, is opt-in via the owner's own VPN.
+- The web app requires auth (per-device pairing token on first visit; no
+  default passwords anywhere; SSH key-only and disabled by default in the
+  consumer image).
+- Every service runs as an unprivileged user; systemd sandboxing
+  (ProtectSystem, PrivateTmp, NoNewPrivileges) on all WhereWatch units.
+- Unattended security updates on; the WhereWatch updater is signed.
+- Encryption at rest for photos + DB (the SD card walking away must not mean
+  the memory walks away readable) - LUKS or per-file, decided by measured Pi
+  overhead.
+- Pendant link: HMAC-authenticated, encrypted, replay-rejected (above).
+
+Hack-test plan (every release, on a real device):
+1. Surface scan: nmap TCP/UDP from LAN and WAN side; anything unexpected
+   open = release blocker.
+2. Web/API: auth bypass and fuzzing on every /api/* endpoint, IDOR on photo
+   paths, CSRF on retention/settings, rate limiting on ask.
+3. Commissioning: replay and evil-twin attempts against the QR/BLE pairing;
+   a stolen pairing QR must not grant a second device access.
+4. Physical: pull the SD card, verify photos/DB unreadable; boot tamper.
+5. Update channel: attempt unsigned/downgraded update installation.
+Findings get filed as issues in this repo and block the release until fixed.
+
 ## Vision model vs reasoning model
 
 WhereWatch needs a **vision-capable local model on the Pi** because the model
