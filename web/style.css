@@ -169,3 +169,5 @@ code { background: var(--card); padding: .1rem .4rem; border-radius: 6px; font-s
 }
 .swatches button:hover { transform:scale(1.15); }
 .swatches button[aria-pressed="true"] { border-color:#fff; }
+
+.promises.emoji li::before { content: none; }

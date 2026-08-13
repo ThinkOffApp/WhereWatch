@@ -155,6 +155,20 @@ hardware:
 Every one of these is a query over the SAME captioned-stills index; none
 breaks the two-device boundary or the things-not-people rule.
 
+## The emoji language
+
+WhereWatch speaks in emoji - a friendly, wordless icon set that works on the
+tiny display, in the app, and embossed on the case itself:
+
+- **Objects:** 🔑 keys · 👛 wallet · 📱 phone · 🕶️ glasses · 🎧 headphones · 📕 docs · 🔋 battery
+- **Location:** 📍 where it was last seen
+- **Privacy promises, as a badge set:** 🎥🚫 no video · 🙈 no faces · ☁️🚫 no cloud
+
+The privacy trio can be embossed right on the case as a wordless promise
+anyone can read at a glance, and the same emoji tag each object in the app and
+on the carried Badger. One little visual language across plastic, screen, and
+software.
+
 ### Colorways + covers
 
 Shell in **Black + four ThinkOff colors** (Fuchsia #D946EF, Orange #F97316,

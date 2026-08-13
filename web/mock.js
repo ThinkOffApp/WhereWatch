@@ -16,12 +16,12 @@
   }
 
   const OBJECTS = [
-    { name: "keys",          tags: ["keys", "home keys"],   last_place: "hallway table",  relative: "beside the bowl",        time: "17:42", hue: 280 },
-    { name: "glasses case",  tags: ["glasses"],             last_place: "kitchen table",  relative: "beside coffee machine",  time: "11:35", hue: 200 },
-    { name: "wallet",        tags: ["wallet"],              last_place: "desk",           relative: "on the laptop stand",    time: "09:12", hue: 30  },
-    { name: "passport",      tags: ["passport", "docs"],    last_place: "bedroom shelf",  relative: "inside the blue folder", time: "Mon 20:03", hue: 140 },
-    { name: "headphones",    tags: ["headphones", "audio"], last_place: "sofa",           relative: "left armrest",           time: "15:20", hue: 330 },
-    { name: "power bank",    tags: ["battery", "charger"],  last_place: "backpack",       relative: "front pocket",           time: "Tue 08:44", hue: 50  },
+    { name: "keys",          emoji:"🔑", tags: ["keys", "home keys"],   last_place: "hallway table",  relative: "beside the bowl",        time: "17:42", hue: 280 },
+    { name: "glasses case",  emoji:"🕶️", tags: ["glasses"],             last_place: "kitchen table",  relative: "beside coffee machine",  time: "11:35", hue: 200 },
+    { name: "wallet",        emoji:"👛", tags: ["wallet"],              last_place: "desk",           relative: "on the laptop stand",    time: "09:12", hue: 30  },
+    { name: "passport",      emoji:"📕", tags: ["passport", "docs"],    last_place: "bedroom shelf",  relative: "inside the blue folder", time: "Mon 20:03", hue: 140 },
+    { name: "headphones",    emoji:"🎧", tags: ["headphones", "audio"], last_place: "sofa",           relative: "left armrest",           time: "15:20", hue: 330 },
+    { name: "power bank",    emoji:"🔋", tags: ["battery", "charger"],  last_place: "backpack",       relative: "front pocket",           time: "Tue 08:44", hue: 50  },
   ];
   OBJECTS.forEach(o => { o.photo_url = photo(o.name, o.hue); });
 
@@ -49,6 +49,7 @@
   ];
   CHECKS.forEach(c => { c.photo_url = photo(c.label, c.hue); });
 
+  window.WW_EMOJI = { keys:"🔑","glasses case":"🕶️", wallet:"👛", passport:"📕", headphones:"🎧", "power bank":"🔋" };
   window.WW_API = {
     async checks() { return { checks: CHECKS }; },
     mock: true,

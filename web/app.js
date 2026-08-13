@@ -87,7 +87,7 @@ function showAnswer(a) {
   box.innerHTML = `
     <img src="${a.photo_url}" alt="last photo of ${a.object}">
     <div>
-      <div class="what">${a.object}</div>
+      <div class="what">${(window.WW_EMOJI && WW_EMOJI[a.object] ? WW_EMOJI[a.object]+" " : "")}${a.object}</div>
       <div class="where">📍 ${a.place} — ${a.relative_position}</div>
       <div class="when">last seen ${a.observed_at}</div>
       <div class="conf">confidence ${(a.confidence * 100).toFixed(0)}%</div>
@@ -113,7 +113,7 @@ $("#ask-form").addEventListener("submit", async e => {
     card.className = "obj";
     card.style.cursor = "pointer";
     card.innerHTML = `<img src="${o.photo_url}" alt="${o.name}">
-      <div class="name">${o.name}</div><div class="place">${o.last_place}</div>`;
+      <div class="name">${o.emoji ? o.emoji + " " : ""}${o.name}</div><div class="place">${o.last_place}</div>`;
     card.addEventListener("click", async () => showAnswer(await api.ask(o.name)));
     grid.appendChild(card);
     (o.tags || []).slice(0, 1).forEach(t => {
