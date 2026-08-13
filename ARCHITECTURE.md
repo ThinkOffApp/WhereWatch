@@ -13,8 +13,8 @@ or third appliance.
 ### DECIDED base: a 16GB/512GB x86 mini PC (not a Pi)
 
 Aug 13 (petrus): the base station is a complete 16GB/512GB x86 mini PC
-(BOSGAME E5, Ryzen 5300U, ~299 checked) - cheaper and faster for vision than
-a 16GB Pi kit (~373), and no assembly. Accessories (status display, mic) hang
+(BOSGAME E5, Ryzen 5300U) - cheaper and faster for vision than
+a 16GB Pi kit, and no assembly. Accessories (status display, mic) hang
 off USB instead of GPIO. The dock/charge notes below apply to whichever box;
 the mini PC's USB-A ports charge the pendant the same way.
 
