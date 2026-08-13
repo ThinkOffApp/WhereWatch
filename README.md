@@ -37,6 +37,12 @@ One device, two appetites, switching automatically by battery state:
 | Stream | charging or battery healthy | low-res MJPEG at 2 fps over wifi | ~5–8 h est. |
 | Stills | below battery threshold | one photo every 20–30 s, deep sleep between | a full day+ |
 
+Camera: **OV5640, 5 MP, wide-angle lens** — small objects need the pixels.
+Dual-pipe capture: the 2 fps stream runs low-res (Frigate only needs motion),
+while the frames that get indexed are full 5 MP stills, so "keys on a
+cluttered table" survives with readable detail without spending battery on
+5 MP video.
+
 **Motion-gated transmission (battery multiplier):** the pendant only
 transmits when something is actually happening. Two triggers, cheapest first:
 on-device frame differencing (compare consecutive low-res frames, no extra
