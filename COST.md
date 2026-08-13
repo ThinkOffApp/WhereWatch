@@ -90,3 +90,25 @@ The differentiator that justifies price: **local, private, no monthly fee,
 answers "where/did I" across the whole home** - nothing off-the-shelf does
 that. Price on the value of never paying a subscription and never sending
 your home to a cloud, not on the parts.
+
+## Business model (petrus): make margin where it is yours
+
+Do not fight the commodity-compute problem - route around it. The value you
+OWN is the custom pendant and the software; the compute is just a box.
+
+- **The custom pendant is the hardware product.** It is the part nobody else
+  sells - your design, your margin. Sell it as the hero SKU (~99-149).
+- **Compute is buyer-supplied or resold at near-cost.** "Works on a mini PC
+  or a Pi you already have," or offer a pre-flashed mini PC at cost + small
+  handling. You never try to profit on a Raspberry Pi.
+- **Software is the durable value: the WhereWatch image, updates, support.**
+  Sold honestly WITHOUT breaking the no-forced-subscription promise:
+  - free core that keeps working forever, offline, no account;
+  - a paid but OPTIONAL support/updates tier (priority fixes, new
+    recognizers, new question types, setup help) for people who want it;
+  - one-time "done for you" setup/flashing as a service.
+
+This keeps the pitch intact (no mandatory cloud, no mandatory fee) while
+giving three real revenue lines: the pendant sale, optional support, and
+setup service. The subscription is a CHOICE for extras, never the toll to
+use what you bought.
