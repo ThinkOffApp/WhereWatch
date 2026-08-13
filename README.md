@@ -47,6 +47,17 @@ motion gating stretches every battery estimate above substantially.
   answered with the newest matching photo and its timestamp — in your team
   chat, like every other agent in the family.
 
+### Interfaces (the family pattern: the agent is the front door)
+
+- **Room agent:** WhereWatch joins your team rooms like its siblings - ask
+  `@wherewatch where are my keys` from anywhere and it answers with the last
+  matching photo and timestamp. Proactive too: it can post "keys last seen on
+  the hallway table" when you leave home without them.
+- **Watch app:** one screen, one question - speak or pick a recent object,
+  get the photo on your wrist. The ClawWatch/CodeWatch wrist pattern.
+- **Web app:** browse the captioned timeline, search history, manage
+  retention and delete days - the place for anything bigger than a glance.
+
 ## The privacy line, drawn before the first commit
 
 A wearable camera photographs everyone around you, not just your keys.
