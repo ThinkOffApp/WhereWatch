@@ -216,18 +216,74 @@ CREATE TABLE episode (
   confidence  REAL
 );
 CREATE VIRTUAL TABLE episode_fts USING fts5(object, verb, place, rel_pos,
-  content=episode);
-CREATE TABLE current_state (              -- the fast answers
-  object      TEXT PRIMARY KEY,
-  episode_id  INTEGER REFERENCES episode(id)
+  content=episode, content_rowid=id);
+-- external-content FTS needs the sync triggers or it silently drifts:
+CREATE TRIGGER episode_ai AFTER INSERT ON episode BEGIN
+  INSERT INTO episode_fts(rowid, object, verb, place, rel_pos)
+  VALUES (new.id, new.object, new.verb, new.place, new.rel_pos); END;
+CREATE TRIGGER episode_ad AFTER DELETE ON episode BEGIN
+  INSERT INTO episode_fts(episode_fts, rowid, object, verb, place, rel_pos)
+  VALUES ('delete', old.id, old.object, old.verb, old.place, old.rel_pos); END;
+CREATE TRIGGER episode_au AFTER UPDATE ON episode BEGIN
+  INSERT INTO episode_fts(episode_fts, rowid, object, verb, place, rel_pos)
+  VALUES ('delete', old.id, old.object, old.verb, old.place, old.rel_pos);
+  INSERT INTO episode_fts(rowid, object, verb, place, rel_pos)
+  VALUES (new.id, new.object, new.verb, new.place, new.rel_pos); END;
+
+CREATE TABLE current_state (              -- the fast answers, per question
+  object      TEXT NOT NULL,              -- "keys" / "keys#2" for instances
+  kind        TEXT NOT NULL,              -- placement|state|action|departure
+  episode_id  INTEGER REFERENCES episode(id),
+  PRIMARY KEY (object, kind)
 );
 ```
 
-Every question family is one query: Where = latest placement episode for the
-object (served straight from current_state); Did I = latest state/action
-episode today; Sequence = time-range scan; the told-not-seen notes insert
-with source=voice/chat/button and win ties over lower-confidence vision rows.
-Retention is one DELETE older than N days plus unlinking the photos.
+Event kinds: placement | state | action | departure | note (told-not-seen
+rows are kind=note with the verb carrying the claim).
+
+Deterministic answer rule, in order: (1) higher source rank wins - note
+sources (voice/chat/button) rank above vision; (2) then newer ts; (3) then
+higher confidence; ties broken by id. One query, no heuristics at read time.
+
+Multiple instances of a thing ("keys" vs the spare set) get instance-suffixed
+object names at ingest; current_state's (object, kind) key answers state and
+placement questions independently.
+
+Every question family is one query: Where = current_state(object, placement);
+Did I = current_state(object, state|action) filtered to today; Sequence =
+time-range scan over episode. Retention is one DELETE older than N days plus
+unlinking the photos (and the FTS delete-trigger keeps the index honest).
+
+## Privacy hardening (codex review, Aug 13)
+
+- **Fail-closed face blur:** no frame reaches ANY durable write until the
+  blur stage reports success; blur failure or low-confidence person
+  detection = frame dropped, counted, never stored. The gate covers every
+  write path: Frigate snapshots and clips (recording and disk snapshots
+  explicitly disabled in Frigate config), thumbnails, model caches, logs,
+  crash dumps, backups. Person detection is treated as imperfect - the
+  pipeline errs toward dropping.
+- **External posting is opt-in, per question family.** The room agent
+  answers in-room only if the owner enabled it; default is web-app-only.
+  A posted answer is a location disclosure and the setting says so.
+- **Map tiles disclose metadata:** fetching tiles tells the provider roughly
+  where you are. The map view defaults to the place-cluster view (no tiles);
+  turning on the tile map shows a one-time notice, and self-hosted/offline
+  tiles are the documented recommended setup.
+- **Wifi fingerprints are location identifiers:** BSSIDs are stored as
+  installation-scoped salted hashes, never shown in the UI, never exported.
+  Weak RSSI evidence returns "unknown", not a guess; room-level accuracy is
+  a calibration promise to MEASURE, not assume (RSSI alone may only manage
+  place-level). AP rotation (BSSID churn) triggers re-calibration hints.
+- **GNSS handling:** no-fix and stale-fix produce no coordinates (never a
+  last-known silently reused); fixes carry accuracy metadata; GPS rows
+  follow the same retention as photos; leaving home with no known wifi and
+  no GNSS module = honest "away, location unknown".
+- **"No video stored" is an acceptance test,** not a slogan: the test suite
+  asserts no container/stream files exist on disk after a stream session.
+- **Pendant-to-Pi commissioning:** paired kit with per-device secret;
+  frames are authenticated (HMAC) and the channel encrypted; replayed
+  frames are rejected by timestamp+nonce.
 
 ## Vision model vs reasoning model
 
