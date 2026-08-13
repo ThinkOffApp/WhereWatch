@@ -10,6 +10,22 @@ The finished WhereWatch system is deliberately just:
 There is no required cloud service, GPU server, M5 cluster, desktop Mac, NAS,
 or third appliance.
 
+### The Pi doubles as the pendant's dock
+
+The Pi's USB-A ports output 5V, so a USB-A-to-C cable from the Pi charges
+the pendant - the base station literally becomes the charging dock. Rest the
+pendant by the Pi overnight and three things happen on one cable: it charges,
+it can do a full wired sync of any buffered stills, and it sits in a known
+"home/charging" state the app can show. One object on the shelf, no separate
+charger brick needed.
+
+Power note: a Pi 5 on a proper 27W USB-C supply has headroom on its USB
+ports for a small pendant draw (a few hundred mA); the Pi's own USB-C port
+stays its power INPUT, charging goes out over USB-A. If a user runs a very
+power-hungry setup, a plain phone charger still works as the fallback - the
+pendant charges from any USB-C source, the dock is a convenience not a
+requirement.
+
 ### Power and charging
 
 Day-to-day physical setup is intentionally simple:
