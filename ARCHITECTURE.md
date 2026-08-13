@@ -177,6 +177,32 @@ box, not as a third device. Backups work fully without a speaker (a status
 line in the web app and a note in the room); the spoken "backup complete" is
 just a nicety when the speaker is present.
 
+## The pendant's printed QR (two purposes, kept apart)
+
+The pendant carries a small printed QR. It is tempting to make it "the
+dashboard link", but a lost-and-found device that is itself lost must not
+hand a finder the keys to your home memory. So the QR is finder-safe by
+default and never the private dashboard:
+
+- **Printed on the pendant = the RETURN page.** Scanning it opens a small
+  public "you found someone's WhereWatch" page served... not from your Pi
+  (your Pi is not on the public internet). It shows only what you chose to
+  put there: "please return to" contact (a phone/email/alias you set), an
+  optional reward note, and how to power it down. ZERO access to your data,
+  your dashboard, your home. A stranger scanning it learns how to give it
+  back, nothing else.
+- **Your dashboard is reached separately** and stays private: the phone you
+  already paired opens it on your home network (or your own VPN). It is
+  auth-gated and LAN-scoped per the security section; it is never behind a
+  QR a finder could scan.
+- Implementation: the return page is a static owner-authored card. Simplest
+  privacy-preserving hosting is a self-chosen URL (or a plain printed "return
+  to <your contact>" with no URL at all). The pendant's own identity is a
+  random token that maps to the contact card only, never to the memory DB.
+
+The nice symmetry stays intact - the device that helps you find things is
+itself findable and returnable - without the QR ever becoming a data leak.
+
 ## Frigate's role
 
 Frigate is the cheap visual plumbing, not the memory itself.
