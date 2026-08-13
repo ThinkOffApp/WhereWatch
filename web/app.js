@@ -28,6 +28,31 @@ document.querySelectorAll(".tab").forEach(t =>
     if (t.dataset.view === "map") renderMap();
   }));
 
+/* ---- device colourway themes the whole UI (petrus) ---- */
+const COLORWAYS = [
+  { key:"fuchsia", hex:"#d946ef" }, { key:"orange", hex:"#f97316" },
+  { key:"yellow", hex:"#facc15" },  { key:"lime",   hex:"#84cc16" },
+  { key:"black",  hex:"#2a2a30" },
+];
+(function initAccent(){
+  const saved = localStorage.getItem("ww-accent") || "fuchsia";
+  document.documentElement.setAttribute("data-accent", saved);
+  const box = document.getElementById("swatches");
+  COLORWAYS.forEach(c => {
+    const b = document.createElement("button");
+    b.style.background = c.hex;
+    b.title = c.key + " pendant";
+    b.setAttribute("aria-pressed", String(c.key === saved));
+    b.addEventListener("click", () => {
+      document.documentElement.setAttribute("data-accent", c.key);
+      localStorage.setItem("ww-accent", c.key);
+      box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+    });
+    box.appendChild(b);
+  });
+})();
+
 /* ---- status pill ---- */
 (async () => {
   const s = await api.status();
