@@ -155,8 +155,12 @@ endpoint, not just a web server:
   to the Pi writes a note episode (source=voice), same as saying it to the
   pendant.
 
-Strictly optional hardware; the two-device boundary holds because the mic
-and speaker live inside the Pi box, not as a third device.
+Strictly optional, phase-2 hardware - NOT part of the first build. The web
+app and pendant are the product; voice is an add-on for whoever wants it.
+The two-device boundary holds because the mic and speaker live inside the Pi
+box, not as a third device. Backups work fully without a speaker (a status
+line in the web app and a note in the room); the spoken "backup complete" is
+just a nicety when the speaker is present.
 
 ## Frigate's role
 
