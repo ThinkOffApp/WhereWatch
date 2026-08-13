@@ -91,6 +91,10 @@ but that does not answer where wearing it is welcome. Decide that before
 building the habit. The default firmware will ship with a physically obvious
 lens (no hidden-camera styling) and a hardware off switch.
 
+## Hardware
+
+Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
+
 ## License
 
 AGPL-3.0, like its siblings. Copyright (C) 2026 ThinkOff / Petrus Pennanen.
