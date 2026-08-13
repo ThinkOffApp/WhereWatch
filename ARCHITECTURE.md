@@ -81,6 +81,9 @@ Raspberry Pi
         |
         | motion/events/keyframes
         v
+  face blur (every stored image is scrubbed BEFORE it touches disk)
+        |
+        v
   local vision model
         |
         | structured observations
@@ -142,7 +145,8 @@ Frigate can:
 - ingest the pendant stream;
 - decode frames;
 - detect motion/events;
-- keep short clips/snapshots;
+- keep snapshots (clip retention stays OFF: WhereWatch stores stills only,
+  never video - the stream is transient plumbing, not a recording);
 - provide a timeline and event API.
 
 WhereWatch adds the part Frigate does not provide by itself: a durable
@@ -191,6 +195,29 @@ to the user's retention settings.
 A huge text model or multi-node cluster can be useful during development for
 experiments with ambiguous natural-language queries, but it is explicitly
 **optional**. It must never become required for normal WhereWatch operation.
+
+## Location: wifi first, GPS as the away-from-home add-on
+
+The pendant has no GPS chip and mostly does not need one. Location comes in
+layers, cheapest first:
+
+1. **Wifi fingerprint (free, already on board):** with every batch of frames
+   the pendant includes the BSSIDs/RSSI it can hear. The Pi learns named
+   places ("home", "office", "cafe") and - with a short calibration walk -
+   even rooms ("kitchen" vs "hallway"), fully locally.
+2. **Vision context (free):** the model's location field ("kitchen table")
+   already names the spot inside a known place.
+3. **GPS (optional part, ~5-10e):** a small GNSS module on the pendant's
+   spare UART covers placements away from any known wifi - the parked car,
+   the beach bag. Coordinates are stored locally like every other
+   observation. Optional enhancement, not core.
+
+### Map view
+
+The web app gains a map tab: your things as pins, each pin the last-seen
+photo + timestamp. Indoor placements cluster on the named place; away-from-
+home placements (GPS or unknown-wifi) drop pins on the map. Map tiles are
+fetched by the viewing browser; placement data never leaves the Pi.
 
 ## Target product
 

@@ -96,6 +96,11 @@ put something beats hoping the camera noticed.
 
 ## The privacy line, drawn before the first commit
 
+**Faces are blurred before storage.** Any face in a frame is scrubbed on the
+Pi before the image touches disk - the stored history physically cannot
+identify people. And **no video is ever stored**: the pendant's stream is
+transient plumbing for motion detection; only stills survive.
+
 **Things, not people - by design, in this branch.** WhereWatch indexes
 OBJECTS only: the captioning prompt and the index schema have no notion of
 who was in frame, person-class detections are dropped rather than stored,
