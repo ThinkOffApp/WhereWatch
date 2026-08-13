@@ -8,7 +8,7 @@ Status: DRAFT, nothing purchased or validated. Candidates marked
 | Part | Candidate | ~Cost | Notes |
 |------|-----------|-------|-------|
 | Camera | **OV5640 5MP, WIDE-ANGLE lens (120-160 degree module)** | in kit or 8-12e module | DECIDED (petrus): 5MP is required, small objects need the resolution; wide angle so the pendant sees the whole scene |
-| Brain board | ESP32-S3 board driving an OV5640: Freenove/LILYGO OV5640 kits, or XIAO ESP32S3 Sense with an OV5640 swap on its camera connector [verify swap compatibility] | 20-30e | Needs PSRAM for 5MP frames; battery management on-board preferred [verify per model] |
+| Brain board | **Seeed XIAO ESP32S3 Sense + OV5640 module for its connector (PICKED, Aug 13)** - Seeed's listing confirms the detachable camera connector is OV5640-compatible | ~25e + ~10e | 8MB PSRAM, mic, microSD, USB-C with on-board battery charging pads = power checklist satisfied. Backup single-box: Waveshare ESP32-S3-CAM-OV5640 or hestore.eu ESP32-S3-N16R8-M-OV5640 (EU stock) |
 | Mic | on chosen board, else INMP441 I2S | 0-4e | trigger-only voice tags |
 | IMU (leave/motion detection) | MPU-6050 breakout | 3-5e | I2C, two wires; skip if chosen board has one [verify] |
 | Battery | 2000mAh 3.7V LiPo, JST-PH | 10-15e | Pick a cell that physically fits the enclosure; protected cell preferred |
