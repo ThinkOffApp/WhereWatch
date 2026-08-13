@@ -171,6 +171,28 @@ last positive observation: 11:35
 This lets most queries return immediately from state instead of asking a
 large model to search hours of video.
 
+## The index is episodic memory (WhereWatch is one view of it)
+
+The observation record was designed for placements, but nothing in it is
+placement-specific. Generalized, the Pi keeps ONE small episodic-event table
+with an event kind:
+
+- `placement` - object seen/placed somewhere (the Where view)
+- `state` - door locked, stove off, window closed (the Did I view)
+- `action` - watered plants, fed the cat, took medication
+- `departure` - what left the house with you (possession checks)
+
+Question families map onto the same table: Where / Did I / State / Action /
+Possession ("did I take my wallet when I left") / Sequence ("what did I do
+after I came home" = a time-range query). WhereWatch and DidIWatch are tabs
+over one memory, not separate systems.
+
+The privacy rules apply to the WHOLE table, harder as it broadens: things
+and states, never people; face-blur before storage; sequence answers list
+object/state events only; retention deletes episodes wholesale. An episodic
+memory of your home must be even more obviously yours-only than a keys
+finder, which is why the two-device, no-cloud boundary is non-negotiable.
+
 ## Vision model vs reasoning model
 
 WhereWatch needs a **vision-capable local model on the Pi** because the model
