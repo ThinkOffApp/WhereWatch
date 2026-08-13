@@ -6,6 +6,27 @@ vision model watches the trail. Ask *"where are my keys?"* and get back the
 last photo that contains them, with a timestamp. No cloud, no subscription,
 nothing leaves your house.
 
+## Two devices. Zero cloud.
+
+Plug in the Raspberry Pi. Charge the pendant over USB-C. Wear it.
+That is the whole system.
+
+WhereWatch remembers where you placed your things, privately. The Pi stores
+a photo of the last useful observation of an item, together with its time and
+location. If people appear in a retained image, faces are blurred before that
+image becomes part of the memory store.
+
+- **No cloud service required**
+- **No subscription required**
+- **No video stored**
+- **No face identification**
+- **Faces blurred before retained images are written to storage**
+- **Object-location history stays on the Pi in your home**
+
+The product target is deliberately small: **pendant + Raspberry Pi**. A large
+GPU box, desktop, NAS, M5 cluster, or hosted AI service may be useful for
+experiments, but none is part of the required product architecture.
+
 Sibling of [CarWatch](https://github.com/ThinkOffApp/CarWatch) (your car as a
 team-chat agent), [ClawWatch](https://github.com/ThinkOffApp/ClawWatch)
 (health on your wrist) and [CodeWatch](https://codewatch.app) (your agents on
@@ -19,11 +40,11 @@ design; code lands as it is written and every feature will be labeled
 
 ## The product principle
 
-**Two objects, one cable.** The whole system is a pendant you wear and a Pi
-box that needs exactly one thing: power. No monitor, no keyboard, no
-ethernet - the box joins wifi, self-installs, self-updates (the CarWatch
-pattern), and everything you ever touch is the pendant, the room agent, and
-the web page the box serves.
+**Two objects, simple power.** The whole system is a pendant you wear and a Pi
+box. The Pi stays plugged into power; the pendant charges over USB-C and runs
+untethered. No monitor, no keyboard, no ethernet - the box joins wifi,
+self-installs, self-updates (the CarWatch pattern), and everything you ever
+touch is the pendant, the room agent, and the web page the box serves.
 
 ## The design
 
@@ -116,6 +137,10 @@ lens (no hidden-camera styling) and a hardware off switch.
 ## Hardware
 
 Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
+
+Architecture and the strict pendant + Pi boundary: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+Future website/launch copy: [WEBSITE_COPY.md](WEBSITE_COPY.md).
 
 ## License
 
