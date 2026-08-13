@@ -200,8 +200,24 @@ default and never the private dashboard:
   to <your contact>" with no URL at all). The pendant's own identity is a
   random token that maps to the contact card only, never to the memory DB.
 
+**Scan notifies the owner (found-mode).** When the return page is opened,
+it can ping you - "your WhereWatch was just scanned" - straight to your
+room/CodeWatch, so you know it has been found and can arrange pickup. Two
+honest constraints keep this a recovery aid, not a tracker:
+
+- **Finder transparency:** the page says plainly that scanning notifies the
+  owner, and any location share is an explicit finder tap ("share my
+  location to help return this"), never silent GPS/IP geolocation. This is
+  the AirTag/Tile found-mode norm, and the anti-stalking reason for it
+  applies to us too.
+- **Minimal + owner-routed:** the scan event carries only what the finder
+  chose (a note, an opted-in coarse location); it routes to the OWNER, and
+  nothing about the finder is retained after the item is recovered. The
+  return host holds a contact card and a notify hook, never the memory DB.
+
 The nice symmetry stays intact - the device that helps you find things is
-itself findable and returnable - without the QR ever becoming a data leak.
+itself findable and returnable - without the QR ever becoming a data leak or
+a way to track whoever picked it up.
 
 ## Frigate's role
 
