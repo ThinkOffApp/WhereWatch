@@ -14,11 +14,12 @@ or third appliance.
 
 Day-to-day physical setup is intentionally simple:
 
-- **Raspberry Pi:** leave it plugged into power.
-- **Pendant:** charge it over USB-C, then wear it untethered.
+- **Raspberry Pi:** stays connected to its own power supply and remains online continuously.
+- **Pendant:** has a separate USB-C charger; charge it, then wear it untethered.
 
-That is the entire power story. The Pi may have an SSD attached inside/under
-its case, but this does not create another user-facing device.
+Charging the pendant never requires unplugging or repurposing the Pi power supply.
+The Pi may have an SSD attached inside/under its case, but this does not create
+another user-facing device.
 
 On first setup the Pi joins Wi-Fi and is then intended to run headless. After
 that, normal use should not require a monitor, keyboard, or Ethernet cable.
@@ -222,9 +223,9 @@ fetched by the viewing browser; placement data never leaves the Pi.
 ## Target product
 
 ```text
-wall power -> Raspberry Pi
+Pi power supply -> Raspberry Pi (always on)
 
-USB-C charger -> pendant battery -> wear pendant
+separate USB-C charger -> pendant battery -> wear pendant
 
 Nothing else required.
 ```
