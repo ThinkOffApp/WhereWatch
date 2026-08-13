@@ -1,58 +1,50 @@
-# WhereWatch hardware — draft list
+# WhereWatch hardware — parts list
 
-Status: DRAFT, nothing purchased or validated. Candidates marked
-[verify] need a datasheet/stock check before ordering.
+Parts and choices only. Costs, links, and the order list live in a private
+BOM (not in this public repo). Items marked [verify] need a datasheet/fit
+check before ordering.
 
 ## Pendant
 
-| Part | Candidate | ~Cost | Notes |
-|------|-----------|-------|-------|
-| Camera | **OV5640 5MP, WIDE-ANGLE lens (120-160 degree module)** | in kit or 8-12e module | DECIDED (petrus): 5MP is required, small objects need the resolution; wide angle so the pendant sees the whole scene |
-| Brain board | **Seeed XIAO ESP32S3 Sense + OV5640 module for its connector (PICKED, Aug 13)** - Seeed's listing confirms the detachable camera connector is OV5640-compatible | ~25e + ~10e | 8MB PSRAM, mic, microSD, USB-C with on-board battery charging pads = power checklist satisfied. Backup single-box: Waveshare ESP32-S3-CAM-OV5640 or hestore.eu ESP32-S3-N16R8-M-OV5640 (EU stock) |
-| Mic | on chosen board, else INMP441 I2S | 0-4e | trigger-only voice tags |
-| IMU (leave/motion detection) | MPU-6050 breakout | 3-5e | I2C, two wires; skip if chosen board has one [verify] |
-| Battery | 2000mAh 3.7V LiPo, JST-PH | 10-15e | Pick a cell that physically fits the enclosure; protected cell preferred |
-| Button | 6mm momentary + cap | <1e | Tap = voice tag, double-tap = status buzz, hold = power |
-| Vibration motor | coin/LRA motor + transistor | 1-3e | Haptic status: 1 buzz = on+connected, 2 = on offline, silence = off |
-| USB-C | on the board | - | Charging + wired transfer |
-| Enclosure | 3D print | ~2e material | Obvious-lens styling per README; lanyard loop; button cutout |
-| Lanyard | any | 2-5e | |
-
-Pendant total: roughly 40-55e.
-
-## Base station
-
-| Part | Candidate | Notes |
-|------|-----------|-------|
-| Compute | any existing always-on box: a Pi 5, the home server, or the Bosgame-class machine | Frigate (2fps stream is a trivial load) + the vision model (Qwen3.6-class + mmproj) |
-| Storage | whatever the box has; ~1-2GB/day at 2fps low-res before pruning | Retention policy lives in the web app |
-
-No new base-station purchase needed if a fleet machine is already running.
+| Part | Choice | Notes |
+|------|--------|-------|
+| Brain board | **Seeed XIAO ESP32S3 Sense** (PICKED) | thumb-sized: ESP32-S3, PDM mic, microSD, USB-C with on-board LiPo charging; detachable camera connector is OV5640-compatible (Seeed listing) |
+| Camera | **OV5640, 5MP, wide-angle** (DECIDED, petrus) | 5MP required for small objects; wide angle to see the whole scene. Fit options: a XIAO-specific OV5640 module, or a generic 120-160° OV5640 (verify the XIAO connector) |
+| Mic | on the XIAO, else INMP441 I2S | trigger-only voice tags |
+| IMU | MPU-6050 / GY-521 breakout | motion + leave-detection; I2C, two wires |
+| Battery | 3.7V ~2000-2100mAh LiPo, **protected**, thin (~6.5mm) | must physically fit the pendant; protected cell only |
+| Button | 6mm momentary | tap = voice tag, double-tap = status buzz, hold = power |
+| Vibration motor | coin/LRA + transistor + flyback diode | haptic status: 1 buzz on+connected, 2 offline, silence off |
+| GPS (optional) | small UART GNSS (e.g. ATGM336H) | away-from-home location; on the spare UART |
+| USB-C | on the board | charging + wired transfer |
+| Enclosure | 3D print (OpenSCAD in cad/) | obvious-lens styling; lens/button/USB cut-outs; lanyard loop |
 
 ## Power electronics
 
-The goal is ZERO separate power boards: pick a brain board with battery
-management built in (charge IC + protection + 3.3V regulation + battery
-pads). Then the entire power chain is: USB-C -> on-board charger -> protected
-2000mAh LiPo -> on-board 3.3V rail. Checklist for the board choice:
+Goal: ZERO separate power boards — the XIAO has the charge IC, protection,
+3.3V rail and battery pads on board. Chain: USB-C → on-board charger →
+protected LiPo → on-board 3.3V. Battery voltage read on an ADC pin for the
+low-battery mode switch + honest haptic status. Only if a chosen board lacks
+battery management: add a TP4056 USB-C charge/protection module.
 
-- LiPo charge IC on board (TP4054-class) with charge-while-use power path [verify per board]
-- Low deep-sleep quiescent current - dev boards with always-on USB-UART chips
-  waste milliamps and quietly kill the battery estimates [verify per board]
-- Battery voltage readable on an ADC pin (for the low-battery mode switch and
-  the haptic status honesty)
+## Base station (DECIDED: mini PC, not a Pi)
 
-Only if the chosen OV5640 board lacks battery management: add a TP4056 USB-C
-charge+protection module (~2e) between cell and board. The vibration motor
-needs one small transistor + flyback diode (pennies, already implied).
+| Part | Choice | Notes |
+|------|--------|-------|
+| Compute | **16GB/512GB x86 mini PC** (complete unit, boots out of box) | runs Frigate + the local vision model; faster than a Pi for the encoder (threads + AVX2 + dual-channel). A Radeon 780M box is the faster upgrade for vision. Pi only if you want GPIO pins |
+| Storage | NVMe SSD, 256GB min / 512GB recommended | photos + DB; SSD not SD (constant writes wear SD out). ~1-2GB/day of stills before pruning |
+| Display (optional, phase-2) | backlit color IPS (glows in the dark) OR detachable e-ink Badger | status face; on a mini PC via USB/HDMI |
+| Mic + speaker (optional, phase-2) | USB mic + small speaker | hands-free "where are my keys", spoken alerts |
 
-## Consumables / tools
+## Tools
 
-- USB-C cable (owned)
-- Soldering only if the IMU breakout is added; the XIAO route can be solder-free except battery pads [verify]
+- USB-C soldering iron (travels well) for the XIAO battery pads — the one
+  solder joint the build needs.
+- Lead-free solder if the kit lacks it.
 
-## Open hardware questions
+## Open questions
 
-1. OV2640 (tiny board, built-in everything) vs OV5640 (sharper, bulkier): decide after a resolution test on sample frames.
-2. Wake-word on ESP32-S3 (ESP-SR) RAM budget alongside camera + wifi [verify on chosen board].
-3. Battery life measurements replace all estimates once the first prototype runs.
+1. Confirm the exact OV5640 module mates with the XIAO's camera connector.
+2. Wake-word (ESP-SR) RAM budget on the XIAO alongside camera + wifi [verify].
+3. Battery life: all estimates get replaced by a measured number once the
+   first prototype runs.

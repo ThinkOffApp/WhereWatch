@@ -566,7 +566,7 @@ layers, cheapest first:
    even rooms ("kitchen" vs "hallway"), fully locally.
 2. **Vision context (free):** the model's location field ("kitchen table")
    already names the spot inside a known place.
-3. **GPS (optional part, ~5-10e):** a small GNSS module on the pendant's
+3. **GPS (optional part):** a small GNSS module on the pendant's
    spare UART covers placements away from any known wifi - the parked car,
    the beach bag. Coordinates are stored locally like every other
    observation. Optional enhancement, not core.

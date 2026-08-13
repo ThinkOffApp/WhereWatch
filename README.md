@@ -182,10 +182,6 @@ Optional slip-on **covers** over the shell:
   camera - the opposite of a hidden spy device, which fits the things-not-
   people ethos. Covers must never occlude the lens, mic port, or charge port.
 
-## Cost
-
-BOM and pricing notes: [COST.md](COST.md).
-
 ## Hardware
 
 Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
