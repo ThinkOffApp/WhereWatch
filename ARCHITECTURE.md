@@ -166,6 +166,10 @@ suits an always-on home object better than a glowing screen; a colour TFT is
 a fine alternative if you prefer livelier status. This is the add-on to reach
 for before the mic/speaker. Still phase-2, still optional.
 
+The Pi uses a stock off-the-shelf case (no custom enclosure - only the
+PENDANT gets the printed OpenSCAD case). A status display just glues or
+sticks to the outside and connects to the header; nothing to design.
+
 Strictly optional, phase-2 hardware - NOT part of the first build. The web
 app and pendant are the product; voice is an add-on for whoever wants it.
 The two-device boundary holds because the mic and speaker live inside the Pi
