@@ -21,6 +21,7 @@
 
 <nav>
   <button class="tab active" data-view="ask">Ask</button>
+  <button class="tab" data-view="didi">Did I?</button>
   <button class="tab" data-view="timeline">Timeline</button>
   <button class="tab" data-view="map">Map</button>
   <button class="tab" data-view="settings">Settings</button>
@@ -35,6 +36,13 @@
     </form>
     <div id="ask-answer" class="answer hidden"></div>
     <div id="ask-chips" class="chips"></div>
+  </section>
+
+  <!-- DID I? -->
+  <section id="view-didi" class="view">
+    <p class="dim" style="margin:1rem 0 .6rem">One tap. The answer is a photo, not anxiety.</p>
+    <div id="didi-grid" class="obj-grid"></div>
+    <div id="didi-answer" class="answer hidden" style="margin-top:1rem"></div>
   </section>
 
   <!-- TIMELINE -->

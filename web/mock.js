@@ -40,7 +40,17 @@
     e.confidence = 0.9;
   });
 
+  const CHECKS = [
+    { q: "lock the front door", emoji: "🚪", label: "Front door", verb: "locked",  place: "front door",     time: "17:44", hue: 260, yes: true },
+    { q: "turn off the stove",  emoji: "🍳", label: "Stove",      verb: "off",     place: "kitchen stove",  time: "13:02", hue: 20,  yes: true },
+    { q: "take the medication", emoji: "💊", label: "Medication", verb: "taken",   place: "kitchen counter",time: "08:31", hue: 120, yes: true },
+    { q: "water the plants",    emoji: "🪴", label: "Plants",     verb: "watered", place: "balcony",        time: "Mon 19:10", hue: 90, yes: false },
+    { q: "close the windows",   emoji: "🪟", label: "Windows",    verb: "closed",  place: "living room",    time: "16:58", hue: 190, yes: true },
+  ];
+  CHECKS.forEach(c => { c.photo_url = photo(c.label, c.hue); });
+
   window.WW_API = {
+    async checks() { return { checks: CHECKS }; },
     mock: true,
     async ask(q) {
       const ql = q.toLowerCase();

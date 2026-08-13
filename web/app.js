@@ -101,6 +101,38 @@ $("#ask-form").addEventListener("submit", async e => {
   chips.after(grid);
 })();
 
+/* ---- Did I? one-tap checks ---- */
+(async () => {
+  const { checks } = await api.call("checks", () => WW_API.checks());
+  const grid = $("#didi-grid");
+  checks.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "obj";
+    card.style.cursor = "pointer";
+    card.innerHTML = `<img src="${c.photo_url}" alt="${c.label}">
+      <div class="name">${c.emoji} ${c.label}</div>
+      <div class="place">${c.yes ? "✓ " + c.verb + " " + c.time : "⚠ not seen today"}</div>`;
+    card.addEventListener("click", () => {
+      const box = $("#didi-answer");
+      box.classList.remove("hidden");
+      const sentence = c.yes
+        ? `Yes - ${c.label} ${c.verb} at ${c.time}.`
+        : `I have not seen the ${c.label.toLowerCase()} ${c.verb} today. Last: ${c.time}.`;
+      box.innerHTML = `
+        <img src="${c.photo_url}" alt="last photo: ${c.label}">
+        <div>
+          <div class="what">${c.emoji} ${c.yes ? "Yes." : "Not sure."}</div>
+          <div class="where">${c.label} ${c.verb}${c.yes ? "" : "? last observation"}</div>
+          <div class="when">📍 ${c.place} — ${c.time}</div>
+          <div class="conf">the answer is a photo, not anxiety</div>
+        </div>`;
+      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      speak(sentence);
+    });
+    grid.appendChild(card);
+  });
+})();
+
 /* ---- Timeline ---- */
 (async () => {
   const { events } = await api.timeline();

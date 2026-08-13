@@ -10,6 +10,8 @@ until the backend exists, `mock.js` serves the same shapes from canned data
   action, place, relative_position, photo_url, confidence}]}`
 - `GET /api/objects` -> `{objects: [{name, last_place, last_seen, photo_url,
   pin: {kind: "place"|"gps", place?, lat?, lon?}}]}`  (Map tab feeds on this)
+- `GET /api/checks` -> `{checks: [{q, emoji, label, verb, place, time,
+  photo_url, yes}]}`  (the Did I? tab's one-tap checks)
 - `GET /api/status` -> `{pendant_online, battery_pct, mode: "stream"|"stills",
   last_frame_at, disk_used_gb, retention_days}`
 - `POST /api/retention {days}` -> `{ok}`  (delete-older-than control)
