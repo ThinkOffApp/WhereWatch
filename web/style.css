@@ -171,3 +171,6 @@ code { background: var(--card); padding: .1rem .4rem; border-radius: 6px; font-s
 .swatches button[aria-pressed="true"] { border-color:#fff; }
 
 .promises.emoji li::before { content: none; }
+
+.cap-row { display:flex; align-items:center; gap:.5rem; color:var(--dim); font-size:.9rem; margin:.4rem 0; }
+.cap-row input { accent-color:var(--accent); }

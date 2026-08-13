@@ -70,10 +70,11 @@
   <!-- SETTINGS -->
   <section id="view-settings" class="view">
     <h2>Retention</h2>
-    <p class="dim">Photos older than this are deleted from the Pi. History never leaves your home.</p>
+    <p class="dim">By default WhereWatch keeps everything and only deletes the oldest photos when the disk gets full — you keep as much history as fits. History never leaves your home.</p>
+    <label class="cap-row"><input type="checkbox" id="cap-on"> Also delete anything older than:</label>
     <div class="retention">
-      <input id="retention-days" type="range" min="1" max="90" value="30">
-      <span id="retention-label">30 days</span>
+      <input id="retention-days" type="range" min="1" max="365" value="30" disabled>
+      <span id="retention-label">keep until full</span>
       <button id="retention-save">Save</button>
     </div>
     <h2>Privacy promises</h2>

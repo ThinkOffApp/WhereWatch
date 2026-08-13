@@ -59,8 +59,13 @@ const COLORWAYS = [
   $("#status-dot").classList.add(s.pendant_online ? "on" : "off");
   $("#status-text").textContent = s.pendant_online
     ? `pendant ${s.battery_pct}% · ${s.mode}` : "pendant offline";
-  $("#retention-days").value = s.retention_days;
-  $("#retention-label").textContent = s.retention_days + " days";
+  // retention: default is "keep until full"; only reflect a cap if one is set
+  if (s.retention_cap_days) {
+    $("#cap-on").checked = true;
+    $("#retention-days").disabled = false;
+    $("#retention-days").value = s.retention_cap_days;
+    $("#retention-label").textContent = s.retention_cap_days + " days";
+  }
 })();
 
 /* ---- Ask: tappable object cards + free text; answers shown AND spoken ---- */
@@ -193,15 +198,20 @@ async function renderMap() {
     : "🗺️ Everything is at a known place — GPS pins appear here when something is left away from home.";
 }
 
-/* ---- Settings ---- */
-$("#retention-days").addEventListener("input", e =>
+/* ---- Settings (null-safe: never let a missing element break the app) ---- */
+const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+on("#cap-on", "change", e => {
+  $("#retention-days").disabled = !e.target.checked;
+  $("#retention-label").textContent = e.target.checked ? $("#retention-days").value + " days" : "keep until full";
+});
+on("#retention-days", "input", e =>
   $("#retention-label").textContent = e.target.value + " days");
-$("#retention-save").addEventListener("click", async () => {
-  const days = $("#retention-days").value;
+on("#retention-save", "click", async () => {
+  const capped = $("#cap-on") && $("#cap-on").checked;
+  const body = capped ? { cap_days: +$("#retention-days").value } : { cap_days: null };
   try {
     await fetch("/api/retention", { method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ days: +days }) });
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   } catch { /* mock mode */ }
   $("#retention-save").textContent = "Saved ✓";
   setTimeout(() => $("#retention-save").textContent = "Save", 1500);

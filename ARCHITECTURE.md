@@ -422,7 +422,12 @@ unlinking the photos (and the FTS delete-trigger keeps the index honest).
 - **Map tiles disclose metadata:** fetching tiles tells the provider roughly
   where you are. The map view defaults to the place-cluster view (no tiles);
   turning on the tile map shows a one-time notice, and self-hosted/offline
-  tiles are the documented recommended setup.
+  tiles are the documented recommended setup. **We never use Google Maps** -
+  a Google (or any hosted) tile/JS overlay sends the map viewport to that
+  provider, which reveals roughly where your things are and breaks the
+  no-cloud promise. The map uses OpenStreetMap tiles either bundled offline
+  for your area or proxied+cached through the Pi, so the browser never talks
+  to a tile CDN directly. Default stays the tile-free place-cluster view.
 - **Wifi fingerprints are location identifiers:** BSSIDs are stored as
   installation-scoped salted hashes, never shown in the UI, never exported.
   Weak RSSI evidence returns "unknown", not a guess; room-level accuracy is
