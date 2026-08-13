@@ -155,6 +155,19 @@ hardware:
 Every one of these is a query over the SAME captioned-stills index; none
 breaks the two-device boundary or the things-not-people rule.
 
+### Colorways + covers
+
+Shell in **Black + four ThinkOff colors** (Fuchsia #D946EF, Orange #F97316,
+Yellow #FACC15, Lime #84CC16), soft-touch finish. Your chosen color also
+themes the web app accent.
+
+Optional slip-on **covers** over the shell:
+- **Soft silicone skin** - grippy, drop-protective, wipes clean.
+- **Furry/plush cover** - the playful option. Cut-outs for the lens, button
+  and USB-C. On-brand fun, and it makes the camera friendly and obviously a
+  camera - the opposite of a hidden spy device, which fits the things-not-
+  people ethos. Covers must never occlude the lens, mic port, or charge port.
+
 ## Cost
 
 BOM and pricing notes: [COST.md](COST.md).
