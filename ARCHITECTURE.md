@@ -23,6 +23,51 @@ its case, but this does not create another user-facing device.
 On first setup the Pi joins Wi-Fi and is then intended to run headless. After
 that, normal use should not require a monitor, keyboard, or Ethernet cable.
 
+### Wi-Fi commissioning
+
+The preferred setup should require **no typing of Wi-Fi passwords into
+WhereWatch**.
+
+On Android, the user can open a saved Wi-Fi network and choose **Share** to
+display the system Wi-Fi QR code. The pendant already has a camera, so the
+first-run flow can be:
+
+```text
+Android phone
+  Settings -> Wi-Fi -> saved network -> Share
+             |
+             | show QR code
+             v
+WhereWatch pendant camera
+  decode network credentials locally
+             |
+             | join Wi-Fi
+             |
+             | securely hand credentials to paired Pi over Bluetooth
+             v
+Raspberry Pi
+  join the same Wi-Fi
+```
+
+Google/Android may restore Wi-Fi credentials between Android devices, but
+WhereWatch should not depend on access to Google's private saved-credential
+store. The QR share flow uses the user's existing Android UI instead and
+keeps commissioning local.
+
+The Pi and pendant should be paired as a kit. For prototypes this can use a
+one-time pairing code or first-run physical pairing; a production device can
+ship with per-device credentials/certificates so that Wi-Fi credentials are
+only accepted by the matching Pi.
+
+Fallback setup options:
+
+- temporary BLE provisioning from the WhereWatch phone UI;
+- temporary Pi setup access point / local web page;
+- manual SSID/password entry;
+- preconfiguration for developer images.
+
+The normal user path remains: **show one QR code, then use the system.**
+
 ## Data path
 
 ```text
