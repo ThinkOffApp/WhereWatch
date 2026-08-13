@@ -134,6 +134,27 @@ but that does not answer where wearing it is welcome. Decide that before
 building the habit. The default firmware will ship with a physically obvious
 lens (no hidden-camera styling) and a hardware off switch.
 
+## Beyond "where are my keys" — same two boxes, more memory
+
+The object-state memory answers more than lost-and-found, all local, no new
+hardware:
+
+- **Told, not seen:** say "leaving my keys here" (pendant button/wake word),
+  type a note in the room chat ("note: passport is in the car"), or press the
+  button - all three write the same observation record the camera would have.
+  Your word outranks the camera's guess.
+- **"Did I…?" checks:** did I lock the door, turn off the stove, take the
+  medication, water the plants - the trail holds the last photo of the
+  action, so the answer is a picture, not anxiety.
+- **Running low:** the pantry/fridge shots know when the milk was last seen;
+  a shopping hint falls out of the same index.
+- **Before/after:** "what did the desk look like on Monday" - placement
+  history doubles as a room diary.
+- **Arrivals:** parcels, deliveries, things that appeared rather than moved.
+
+Every one of these is a query over the SAME captioned-stills index; none
+breaks the two-device boundary or the things-not-people rule.
+
 ## Hardware
 
 Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
