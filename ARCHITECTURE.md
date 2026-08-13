@@ -85,6 +85,23 @@ Fallback setup options:
 
 The normal user path remains: **show one QR code, then use the system.**
 
+### First-run sequence (pre-paired kit)
+
+For a kit we assembled and paired at the bench, the buyer's entire setup is:
+
+1. Power the base (mini PC or Pi).
+2. Rest the pendant on its dock/cradle - it charges and its camera faces out.
+3. On the phone: open the home wifi network, tap Share, show the wifi QR.
+4. Hold the phone to the pendant camera. The pendant decodes the credentials
+   locally, joins wifi, and passes them to the base over the pre-paired
+   encrypted link. The base joins the same network.
+
+No keyboard, no typed password, no account. The one secret that must never
+be preset - the wifi password - is exactly the step the buyer performs, so a
+fully pre-assembled kit is safe to ship. The pendant needs a little charge to
+scan, which the dock supplies, so the order is: power base, pendant on dock,
+scan.
+
 ## Data path
 
 ```text
