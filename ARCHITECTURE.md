@@ -193,6 +193,42 @@ object/state events only; retention deletes episodes wholesale. An episodic
 memory of your home must be even more obviously yours-only than a keys
 finder, which is why the two-device, no-cloud boundary is non-negotiable.
 
+## The database
+
+**SQLite, one file on the Pi.** Zero administration, survives power loss,
+trivially backed up by copying one file, and its FTS5 full-text index makes
+caption search instant. On a Pi-scale write load (a few events per minute at
+worst) it is the boring, correct choice. No server, no ORM.
+
+```sql
+CREATE TABLE episode (
+  id          INTEGER PRIMARY KEY,
+  ts          TEXT NOT NULL,              -- ISO time
+  kind        TEXT NOT NULL,              -- placement|state|action|departure|note
+  object      TEXT NOT NULL,              -- "keys", "front door", "plants"
+  verb        TEXT NOT NULL,              -- placed|seen|locked|watered|left-with
+  place       TEXT,                       -- "kitchen table" (vision or wifi)
+  rel_pos     TEXT,                       -- "beside coffee machine"
+  wifi_place  TEXT,                       -- fingerprint-derived place name
+  lat, lon    REAL,                       -- only when GPS module present
+  photo_path  TEXT,                       -- Pi-local still (face-blurred)
+  source      TEXT NOT NULL,              -- vision|voice|chat|button
+  confidence  REAL
+);
+CREATE VIRTUAL TABLE episode_fts USING fts5(object, verb, place, rel_pos,
+  content=episode);
+CREATE TABLE current_state (              -- the fast answers
+  object      TEXT PRIMARY KEY,
+  episode_id  INTEGER REFERENCES episode(id)
+);
+```
+
+Every question family is one query: Where = latest placement episode for the
+object (served straight from current_state); Did I = latest state/action
+episode today; Sequence = time-range scan; the told-not-seen notes insert
+with source=voice/chat/button and win ties over lower-confidence vision rows.
+Retention is one DELETE older than N days plus unlinking the photos.
+
 ## Vision model vs reasoning model
 
 WhereWatch needs a **vision-capable local model on the Pi** because the model
