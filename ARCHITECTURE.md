@@ -190,6 +190,24 @@ endpoint, not just a web server:
 
 ### Optional ambient status face (phase-2)
 
+**Two display concepts, and they split cleanly by technology:**
+
+- **Fixed backlit color face** (e.g. Display HAT Mini) - best for a base that
+  sits in a dark spot, glows, shows the color status + heart. Stays on the box.
+- **Detachable e-ink Badger** (petrus) - a battery + buttons e-ink board that
+  DOCKS as the status face and DETACHES to carry: e-ink holds its image with
+  zero power for days, so it is a perfect little take-with-you message board
+  ("back in 5", a note on the door, a greeting, today's object count frozen
+  on it). Docked it shows live status; undocked it keeps the last screen and
+  its buttons cycle saved messages.
+
+They are not mutually exclusive - a buyer could have the color face on the
+base AND a Badger as a carry accessory - but for most, pick one: color if the
+base lives in the dark, Badger if the "detach and show a message" charm wins.
+E-ink is not backlit, so a Badger in a dark room is not glanceable; that is the
+one honest trade.
+
+
 A small display on the Pi gives it a calm, glanceable face - "pendant 72%,
 streaming", "storage 38% used (~5 months left)", "backup complete, safe to
 remove", "last event 2 min ago", today's object count - no interaction, no
