@@ -29,6 +29,23 @@ Pendant total: roughly 40-55e.
 
 No new base-station purchase needed if a fleet machine is already running.
 
+## Power electronics
+
+The goal is ZERO separate power boards: pick a brain board with battery
+management built in (charge IC + protection + 3.3V regulation + battery
+pads). Then the entire power chain is: USB-C -> on-board charger -> protected
+2000mAh LiPo -> on-board 3.3V rail. Checklist for the board choice:
+
+- LiPo charge IC on board (TP4054-class) with charge-while-use power path [verify per board]
+- Low deep-sleep quiescent current - dev boards with always-on USB-UART chips
+  waste milliamps and quietly kill the battery estimates [verify per board]
+- Battery voltage readable on an ADC pin (for the low-battery mode switch and
+  the haptic status honesty)
+
+Only if the chosen OV5640 board lacks battery management: add a TP4056 USB-C
+charge+protection module (~2e) between cell and board. The vibration motor
+needs one small transistor + flyback diode (pennies, already implied).
+
 ## Consumables / tools
 
 - USB-C cable (owned)
