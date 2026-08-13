@@ -17,6 +17,14 @@ your phone). This one watches where things went.
 design; code lands as it is written and every feature will be labeled
 *proven / built + tested / planned*, the same policy as CarWatch.
 
+## The product principle
+
+**Two objects, one cable.** The whole system is a pendant you wear and a Pi
+box that needs exactly one thing: power. No monitor, no keyboard, no
+ethernet - the box joins wifi, self-installs, self-updates (the CarWatch
+pattern), and everything you ever touch is the pendant, the room agent, and
+the web page the box serves.
+
 ## The design
 
 ### Pendant (ESP32-S3 + OV5640 camera + 2Ah battery)
