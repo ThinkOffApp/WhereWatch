@@ -315,6 +315,30 @@ Hack-test plan (every release, on a real device):
 5. Update channel: attempt unsigned/downgraded update installation.
 Findings get filed as issues in this repo and block the release until fixed.
 
+## Sole holder: the concentration is the feature, and the risk
+
+The Pi is the ONLY copy of your home's memory. That is the whole privacy
+guarantee - no cloud copy means no cloud breach, no vendor subpoena, no
+account to leak. But sole-holder means one box carries two risks, and the
+design must answer both honestly:
+
+- **Compromise (someone gets the box/card):** encryption at rest is the
+  answer - a stolen SD card is ciphertext, not your life. Covered in the
+  security section; the key is derived from an owner secret set at
+  commissioning, not stored in the clear on the card.
+- **Loss (the Pi dies, the card corrupts):** sole-holder must not mean
+  single-point-of-loss. The design's answer is **local, encrypted,
+  owner-controlled backup** - to a USB SSD in the same case, or to another
+  device the owner already has at home (a NAS, a second Pi), never to a
+  cloud by default. Backups carry the same encryption and retention as the
+  live DB. An optional owner-initiated encrypted export (a file the user
+  holds) covers "I want a copy off-site" without WhereWatch ever choosing a
+  third party for them.
+
+The principle: WhereWatch never widens the trust boundary to solve
+reliability. Redundancy stays inside the home and inside the owner's
+control, or it does not happen.
+
 ## Vision model vs reasoning model
 
 WhereWatch needs a **vision-capable local model on the Pi** because the model
