@@ -11,7 +11,8 @@ Status: DRAFT, nothing purchased or validated. Candidates marked
 | Alt board (OV5640) | Freenove/LILYGO ESP32-S3 cam kits with OV5640 | 20-30e | True 5MP per the original idea, but physically larger and some lack battery management [verify per model] |
 | IMU (leave/motion detection) | MPU-6050 breakout | 3-5e | I2C, two wires; skip if chosen board has one [verify] |
 | Battery | 2000mAh 3.7V LiPo, JST-PH | 10-15e | Pick a cell that physically fits the enclosure; protected cell preferred |
-| Button | 6mm momentary + cap | <1e | Tap = voice tag, hold = power |
+| Button | 6mm momentary + cap | <1e | Tap = voice tag, double-tap = status buzz, hold = power |
+| Vibration motor | coin/LRA motor + transistor | 1-3e | Haptic status: 1 buzz = on+connected, 2 = on offline, silence = off |
 | USB-C | on the board | - | Charging + wired transfer |
 | Enclosure | 3D print | ~2e material | Obvious-lens styling per README; lanyard loop; button cutout |
 | Lanyard | any | 2-5e | |
