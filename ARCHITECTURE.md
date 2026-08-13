@@ -201,6 +201,13 @@ endpoint, not just a web server:
   on it). Docked it shows live status; undocked it keeps the last screen and
   its buttons cycle saved messages.
 
+Messages: you write your own in the web app (a little text field -> pushed to
+the Badger), OR the app suggests ones - both canned ("Back in 5", "Do not
+disturb", "Welcome home") and context-aware from the index ("last home 2h
+ago", "3 things left today", "remember: keys on the hall table"). The local
+model can even draft a friendly line on request. Write-your-own plus
+suggest-for-you, your pick.
+
 They are not mutually exclusive - a buyer could have the color face on the
 base AND a Badger as a carry accessory - but for most, pick one: color if the
 base lives in the dark, Badger if the "detach and show a message" charm wins.
