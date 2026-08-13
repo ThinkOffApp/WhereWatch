@@ -47,6 +47,19 @@ motion gating stretches every battery estimate above substantially.
   answered with the newest matching photo and its timestamp — in your team
   chat, like every other agent in the family.
 
+**Lens-cover pause:** covering the camera IS the pause button - a run of
+all-dark frames stops capture and transmission until light returns. A
+physical privacy gesture anyone in the room can see and perform, no app
+needed.
+
+**Voice tags ("leaving my keys here"):** the pendant carries a mic used ONLY
+on explicit trigger - a button press or an on-device wake word (ESP32-S3
+runs wake-word detection locally) - never ambient recording, the audio
+equivalent of things-not-people. A short clip travels to the base station,
+whisper transcribes it locally (the same stack the car uses), and the text
+is pinned to that moment's photo and place in the index. Saying where you
+put something beats hoping the camera noticed.
+
 ### Interfaces (the family pattern: the agent is the front door)
 
 - **Room agent:** WhereWatch joins your team rooms like its siblings - ask
