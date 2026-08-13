@@ -194,7 +194,9 @@ A small display on the Pi gives it a calm, glanceable face - "pendant 72%,
 streaming", "storage 38% used (~5 months left)", "backup complete, safe to
 remove", "last event 2 min ago", today's object count - no interaction, no
 cloud, just proof it is alive and healthy. The two most useful lines are
-pendant charge and storage headroom. Recommended pick: a small **e-ink** panel (Pimoroni Badger-class or
+pendant charge and storage headroom. The display THEME matches your device
+color (a lime pendant = lime accents), and on any non-black variant it shows
+the ThinkOff heart, so the base station wears the same color as the pendant. Recommended pick: a small **e-ink** panel (Pimoroni Badger-class or
 an e-ink HAT). E-ink holds its text with the Pi asleep, sips no power, and
 suits an always-on home object better than a glowing screen; a colour TFT is
 a fine alternative if you prefer livelier status. This is the add-on to reach
