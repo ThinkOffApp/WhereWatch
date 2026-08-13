@@ -155,6 +155,10 @@ hardware:
 Every one of these is a query over the SAME captioned-stills index; none
 breaks the two-device boundary or the things-not-people rule.
 
+## Cost
+
+BOM and pricing notes: [COST.md](COST.md).
+
 ## Hardware
 
 Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
