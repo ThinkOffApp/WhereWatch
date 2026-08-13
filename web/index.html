@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhereWatch</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="heart">💜</span>
+    <h1>WhereWatch</h1>
+    <span class="tagline">remembers where you put your things</span>
+  </div>
+  <div id="status" class="status" title="pendant status">
+    <span class="dot" id="status-dot"></span><span id="status-text">connecting…</span>
+  </div>
+</header>
+
+<nav>
+  <button class="tab active" data-view="ask">Ask</button>
+  <button class="tab" data-view="timeline">Timeline</button>
+  <button class="tab" data-view="map">Map</button>
+  <button class="tab" data-view="settings">Settings</button>
+</nav>
+
+<main>
+  <!-- ASK -->
+  <section id="view-ask" class="view active">
+    <form id="ask-form" autocomplete="off">
+      <input id="ask-input" type="search" placeholder="where are my keys?" aria-label="Ask where something is">
+      <button type="submit">Ask</button>
+    </form>
+    <div id="ask-answer" class="answer hidden"></div>
+    <div id="ask-chips" class="chips"></div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="view-timeline" class="view">
+    <div class="timeline-head">
+      <button id="day-prev" aria-label="previous day">‹</button>
+      <h2 id="day-label">Today</h2>
+      <button id="day-next" aria-label="next day">›</button>
+    </div>
+    <div id="timeline-list" class="timeline"></div>
+  </section>
+
+  <!-- MAP (reserved for codex) -->
+  <section id="view-map" class="view">
+    <div class="placeholder">
+      <p>🗺️ Map tab under construction — pins of your things over places and GPS points.</p>
+      <p class="dim">Feeds on <code>GET /api/objects</code> (see web/API.md). Claimed by @codexmb.</p>
+      <div id="map-objects" class="obj-grid"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="view">
+    <h2>Retention</h2>
+    <p class="dim">Photos older than this are deleted from the Pi. History never leaves your home.</p>
+    <div class="retention">
+      <input id="retention-days" type="range" min="1" max="90" value="30">
+      <span id="retention-label">30 days</span>
+      <button id="retention-save">Save</button>
+    </div>
+    <h2>Privacy promises</h2>
+    <ul class="promises">
+      <li>Faces blurred <em>before</em> storage</li>
+      <li>No video ever stored — stills only</li>
+      <li>No face identification, no person index</li>
+      <li>Everything stays on this Pi</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <span>local-only · no cloud · no subscription</span>
+  <a href="https://github.com/ThinkOffApp/WhereWatch" rel="noopener">source</a>
+</footer>
+
+<script src="mock.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
