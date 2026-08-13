@@ -21,6 +21,12 @@ design; code lands as it is written and every feature will be labeled
 
 ### Pendant (ESP32-S3 + OV5640 camera + 2Ah battery)
 
+Hardware philosophy: minimal. **One button** (voice tag; hold for power),
+**one USB-C port** (charging, and wired transfer as an offline option), no
+screen, no LED. Covering the lens is the pause control; the button is
+everything else.
+
+
 One device, two appetites, switching automatically by battery state:
 
 | Mode | When | What | Battery |
