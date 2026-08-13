@@ -182,9 +182,19 @@ suits an always-on home object better than a glowing screen; a colour TFT is
 a fine alternative if you prefer livelier status. This is the add-on to reach
 for before the mic/speaker. Still phase-2, still optional.
 
-The Pi uses a stock off-the-shelf case (no custom enclosure - only the
-PENDANT gets the printed OpenSCAD case). A status display just glues or
-sticks to the outside and connects to the header; nothing to design.
+The Pi uses a stock off-the-shelf case (no custom enclosure). The only
+printed parts are small OPTIONAL accessories, both parametric OpenSCAD in
+this repo alongside the pendant case:
+
+- a **display shroud** that clips onto the stock case and holds the e-ink/TFT
+  panel at a readable angle (instead of bare-gluing it), and
+- a **pendant cradle** - a little dock pocket that holds the pendant against
+  its charging cable so "set it down by the Pi" has an actual resting spot.
+
+They can be one combined clip-on piece: display up top, cradle below, the
+charge cable routed through. Print-optional; the product works without them
+(glue the display, rest the pendant anywhere), they are just the tidy
+finishing touch for whoever has a printer.
 
 Strictly optional, phase-2 hardware - NOT part of the first build. The web
 app and pendant are the product; voice is an add-on for whoever wants it.
