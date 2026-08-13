@@ -60,7 +60,13 @@ motion gating stretches every battery estimate above substantially.
 
 ## The privacy line, drawn before the first commit
 
-A wearable camera photographs everyone around you, not just your keys.
+**Things, not people - by design, in this branch.** WhereWatch indexes
+OBJECTS only: the captioning prompt and the index schema have no notion of
+who was in frame, person-class detections are dropped rather than stored,
+and "where is Anna" is a question this system is built to be unable to
+answer. That is a product decision, not a missing feature.
+
+A wearable camera still photographs everyone around you, not just your keys.
 WhereWatch is local-only by design — frames never leave your own hardware —
 but that does not answer where wearing it is welcome. Decide that before
 building the habit. The default firmware will ship with a physically obvious
