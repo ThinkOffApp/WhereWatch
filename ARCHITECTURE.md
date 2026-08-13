@@ -137,6 +137,27 @@ The exact model and quantization are implementation choices and should be
 selected by measured Pi performance, not by making a larger machine part of
 the product architecture.
 
+## The Pi as a voice point (mic + speaker)
+
+A small USB/I2S mic and speaker on the Pi make the home base a hands-free
+endpoint, not just a web server:
+
+- **Ask out loud:** "where are my keys?" answered by voice from the same
+  index the web app uses - the eyes-free path for exactly the moment you are
+  looking for something and your phone is the thing you cannot find.
+- **Wake word runs locally** (the CarWatch voice stack already does this on
+  a Pi); audio is processed on-device and NOT stored - voice follows the
+  same things-not-people rule, transcribe-and-discard, never a recording.
+- **Spoken confirmations:** "backup done", "pendant battery low", "front
+  door not seen since you left" - the Pi can speak the proactive alerts the
+  web app would otherwise only show.
+- **Told-not-seen by voice:** "remember I put my passport in the car" spoken
+  to the Pi writes a note episode (source=voice), same as saying it to the
+  pendant.
+
+Strictly optional hardware; the two-device boundary holds because the mic
+and speaker live inside the Pi box, not as a third device.
+
 ## Frigate's role
 
 Frigate is the cheap visual plumbing, not the memory itself.
@@ -334,6 +355,13 @@ design must answer both honestly:
   live DB. An optional owner-initiated encrypted export (a file the user
   holds) covers "I want a copy off-site" without WhereWatch ever choosing a
   third party for them.
+  - **Plug-in auto-backup:** insert a USB stick/SSD and the Pi backs up to
+    it automatically - a udev rule fires on insert, the drive is recognized
+    by a WhereWatch marker, an encrypted incremental snapshot is written,
+    and the speaker says "backup done, safe to remove". First-time inserts
+    prompt for one-tap enrolment (so a random stranger's stick is not
+    trusted). Pull it, put it in a drawer: that is your off-site copy, still
+    encrypted, still only openable with your secret.
 
 The principle: WhereWatch never widens the trust boundary to solve
 reliability. Redundancy stays inside the home and inside the owner's
