@@ -28,6 +28,13 @@ One device, two appetites, switching automatically by battery state:
 | Stream | charging or battery healthy | low-res MJPEG at 2 fps over wifi | ~5–8 h est. |
 | Stills | below battery threshold | one photo every 20–30 s, deep sleep between | a full day+ |
 
+**Motion-gated transmission (battery multiplier):** the pendant only
+transmits when something is actually happening. Two triggers, cheapest first:
+on-device frame differencing (compare consecutive low-res frames, no extra
+part needed) and optionally a tiny IMU (movement of the wearer). Still scene,
+still wearer = radio off, deep sleep. Wifi transmit is the power hog, so
+motion gating stretches every battery estimate above substantially.
+
 ### Base station (any Raspberry Pi–class box)
 
 - **Cheap filter:** [Frigate](https://frigate.video) ingests the 2 fps
