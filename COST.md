@@ -1,5 +1,11 @@
 # WhereWatch cost + pricing notes
 
+> **PRICE HONESTY:** figures below marked (checked) came from a live Amazon.de
+> listing on Aug 13 2026. Figures marked (est) are estimates and may be wrong -
+> verify against a current listing before spending. Earlier drafts of this doc
+> quoted mini-PC prices from memory that were too low; corrected here.
+
+
 All figures EUR. Two columns: **retail** = what you pay buying ONE of each
 part today (the prototype cost), **volume** = rough BOM if built in hundreds+
 (what pricing math should use). Prototype prices are from the Aug 2026
@@ -32,11 +38,12 @@ LESS:
 
 | Base option | Retail (1 off) | Notes |
 |-------------|---------------:|-------|
-| **Intel N100 mini PC (16GB/512GB)** | **~150-180** | runs the vision model several x faster than a Pi; x86, more RAM, SSD included; the value pick |
+| **Intel N100 mini PC (16GB, Beelink S12 Pro)** | **~359 (checked)** | genuine-brand N100; NiPoGi N100 16GB/1TB ~319 (checked). x86+AVX2, faster than Pi. Value floor |
+| **Radeon 780M box (BOSGAME P3 Pro, Ryzen 9 7940HS 16GB/1TB)** | **~570 (checked, deal)** | iGPU accelerates the vision encoder several x via Vulkan - the FAST pick |
 | Raspberry Pi 5 kit (8GB + PSU + case + SSD) | 255-310 | GPIO for display/mic, maker appeal, but pricier AND slower for vision |
 | Reuse a box you own (old PC / NUC / the Bosgame) | 0 | if the buyer has one |
 
-Base subtotal used below: **~165 EUR** (N100 mini PC as the default).
+Base subtotal (checked Aug 13): **~359 EUR** (Beelink N100) or **~570 EUR** (Radeon 780M box, faster vision). Branded N100 is NOT the ~165 I earlier guessed - it is close to Pi-kit money, so the mini-PC edge over a Pi is SPEED, not price.
 
 ## Optional (phase-2, not in v1)
 
