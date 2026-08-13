@@ -206,7 +206,7 @@ the Badger), OR the app suggests ones - both canned ("Back in 5", "Do not
 disturb", "Welcome home") and context-aware from the index ("last home 2h
 ago", "3 things left today", "remember: keys on the hall table"). The local
 model can even draft a friendly line on request. Write-your-own plus
-suggest-for-you, your pick.
+suggest-for-you, your pick. The Badger can also show PICTURES, not just text: pick a few favorite objects and it displays their auto-generated thumbnails (e-ink renders the index photo in grayscale), so a glance at the carried Badger shows "keys, wallet, glasses" as little pictures. Petrus drafts a starter set of on-brand text messages.
 
 They are not mutually exclusive - a buyer could have the color face on the
 base AND a Badger as a carry accessory - but for most, pick one: color if the
