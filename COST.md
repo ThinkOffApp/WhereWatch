@@ -36,14 +36,15 @@ not 130.
 Pi.** An x86 mini PC does the same job (Frigate + local vision), FASTER, for
 LESS:
 
-| Base option | Retail (1 off) | Notes |
-|-------------|---------------:|-------|
-| **Intel N100 mini PC (16GB, Beelink S12 Pro)** | **~359 (checked)** | genuine-brand N100; NiPoGi N100 16GB/1TB ~319 (checked). x86+AVX2, faster than Pi. Value floor |
-| **Radeon 780M box (BOSGAME P3 Pro, Ryzen 9 7940HS 16GB/1TB)** | **~570 (checked, deal)** | iGPU accelerates the vision encoder several x via Vulkan - the FAST pick |
-| Raspberry Pi 5 kit (8GB + PSU + case + SSD) | 255-310 | GPIO for display/mic, maker appeal, but pricier AND slower for vision |
-| Reuse a box you own (old PC / NUC / the Bosgame) | 0 | if the buyer has one |
+| Base option | Price (checked Aug 13) | Notes |
+|-------------|----------------------:|-------|
+| **DECIDED: 16GB/512GB x86 mini PC (BOSGAME E5, Ryzen 5300U)** | **~299 (checked)** | COMPLETE unit: metal case, PSU, 16GB, 512GB NVMe, OS - boots out of box. 8 threads + dual-channel = faster than a Pi for vision; cheaper than a 16GB Pi kit. The value pick |
+| Cheaper N95 alt (DreamQuest/AWOW 16GB/512GB) | ~269-299 (checked) | fine, slightly slower than the Ryzen (4 threads, often single-channel) |
+| Radeon 780M box (BOSGAME P3 Pro, Ryzen 9 7940HS 16GB/1TB) | ~570 (checked, deal) | iGPU accelerates the vision encoder several x via Vulkan - the FAST upgrade |
+| Raspberry Pi 5 16GB kit | ~373 (checked) | only for the GPIO pins; pricier + slower, and accessories can go via USB on the mini PC. petrus's BerryBase experience also argued against it |
+| Reuse a box you already own | 0 | if the buyer has one |
 
-Base subtotal (checked Aug 13): **~359 EUR** (Beelink N100) or **~570 EUR** (Radeon 780M box, faster vision). Branded N100 is NOT the ~165 I earlier guessed - it is close to Pi-kit money, so the mini-PC edge over a Pi is SPEED, not price.
+Base subtotal (checked Aug 13): **~299 EUR** (BOSGAME E5, the decided default) or **~570 EUR** for the faster 780M box. A 16GB Pi kit is ~373 - more than the mini PC, so the mini-PC wins on price AND speed here.
 
 ## Optional (phase-2, not in v1)
 
@@ -54,23 +55,21 @@ Base subtotal (checked Aug 13): **~359 EUR** (Beelink N100) or **~570 EUR** (Rad
 | USB backup stick/SSD | 10-40 | (user-supplied) |
 | Printed display shroud + pendant cradle | 3 | 1.5 |
 
-## Totals (corrected)
+## Totals (all prices checked Aug 13)
 
-- **Core build with N100 mini PC base:** ~**71 + 165 = ~235 EUR** prototype.
-- **Core build with Pi 5 kit base:** ~**71 + 280 = ~350 EUR** prototype
-  (pricier and slower - only worth it for the GPIO/maker angle).
+- **Core build, decided (BOSGAME E5 mini PC base):** ~**71 + 299 = ~370 EUR** prototype.
+- **Core build, fast (780M box base):** ~**71 + 570 = ~641 EUR** prototype.
+- **Core build with a 16GB Pi kit instead:** ~**71 + 373 = ~444 EUR** prototype.
 - **Reusing a box the buyer owns:** ~**71 EUR** (just the pendant).
 
 The lesson: the pendant is cheap (~30-70), the COMPUTE is the whole cost
-question, and a Pi is the expensive way to buy compute in 2026. Pricing
-should assume a mini-PC-class base unless we deliberately choose the Pi for
-its pins.
+question. The decided base is the ~299 EUR complete mini PC.
 
 ## Pricing tension (the honest part)
 
 1. **The compute box is the cost floor and it is a general computer** -
-   most of the BOM is a small always-on PC (mini PC ~165, or a Pi 5 kit
-   ~280). Hardware margin on commodity compute is thin either way.
+   most of the BOM is a small always-on PC (~299 for the decided mini PC).
+   Hardware margin on commodity compute is thin either way.
 2. **The pitch is NO subscription**, so the hardware sale must carry all the
    margin. That is the opposite of the Ring/Nest model and it is a feature,
    but it means the sticker price has to include the value, not defer it.
