@@ -155,6 +155,17 @@ endpoint, not just a web server:
   to the Pi writes a note episode (source=voice), same as saying it to the
   pendant.
 
+### Optional ambient status face (phase-2)
+
+A small display on the Pi gives it a calm, glanceable face - "pendant 72%,
+streaming", "backup complete, safe to remove", "last event 2 min ago",
+today's object count - no interaction, no cloud, just proof it is alive and
+healthy. Recommended pick: a small **e-ink** panel (Pimoroni Badger-class or
+an e-ink HAT). E-ink holds its text with the Pi asleep, sips no power, and
+suits an always-on home object better than a glowing screen; a colour TFT is
+a fine alternative if you prefer livelier status. This is the add-on to reach
+for before the mic/speaker. Still phase-2, still optional.
+
 Strictly optional, phase-2 hardware - NOT part of the first build. The web
 app and pendant are the product; voice is an add-on for whoever wants it.
 The two-device boundary holds because the mic and speaker live inside the Pi
