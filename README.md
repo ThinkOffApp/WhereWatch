@@ -184,7 +184,8 @@ Optional slip-on **covers** over the shell:
 
 ## Hardware
 
-Draft parts list with candidates and open questions: [HARDWARE.md](HARDWARE.md).
+The parts list, sourcing and pricing live in the team's private workspace,
+not in this public repo.
 
 Architecture and the strict pendant + Pi boundary: [ARCHITECTURE.md](ARCHITECTURE.md).
 
