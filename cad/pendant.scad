@@ -1,4 +1,8 @@
-// WhereWatch pendant - FRIENDLY PEBBLE, personalised
+// WhereWatch pendant - TEARDROP, personalised
+// petrus, Aug 16: "ylaosasta kapea ja pyorea, alhaalta leveampi
+// pyoristetyilla kulmilla" - narrow round tip up, widening toward the
+// battery. Form follows the parts: the tip only has to clear the GPS
+// patch (13 mm), the bottom must clear the cell (40 mm).
 // Worn vertically. Top end is a full half-dome (river stone), camera at the
 // top, BATTERY IN THE BOTTOM half, and the back carries a PERSONAL engraving
 // (your own text and/or emoji) so no two pendants look corporate.
@@ -28,19 +32,20 @@ wall = 1.2;
 fit  = 0.4;     // clearance around the cell
 
 /* [Outer size - derived from the cell, so the shape always fits] */
-wid   = bat_w + fit + 2*wall;          // ~43
+wid   = bat_w + fit + 2*wall;          // bottom width ~43 (cell decides)
+tip_d = 22;                            // narrow round tip (GPS needs ~16)
 thick = bat_t + fit + 2*wall;          // ~9.4
-// Elongated (petrus: "pitkulainen"): the top zone holds, tip downward,
-// GPS ceramic antenna (sky-facing, no metal above it), OV5640 camera,
-// XIAO ESP32S3 Sense with the MPU-6050 beside it. 34 mm fits that stack.
-len   = bat_l + 34;                    // battery + sensor zone (~94)
+// Teardrop sensor zone is IN LINE down the taper: GPS patch alone in
+// the narrow tip, then OV5640 + XIAO + IMU (camera and IMU stack in
+// the thickness axis on the XIAO), then the cell in the wide bottom.
+len   = bat_l + 42;                    // battery + tapered sensor zone (~102)
 
 /* [Roundness] */
 r_bot = 12;     // soft bottom corners
 
 /* [Openings] */
 cam_d        = 9;      // camera lens (front, near the top)
-cam_from_top = 20;
+cam_from_top = 30;   // below the GPS zone, where the taper has widened
 usbc_w       = 9.5;    // USB-C in the bottom end
 usbc_h       = 3.4;
 btn_d        = 4;      // side button
@@ -66,8 +71,10 @@ module pebble_solid(inset = 0) {
     hw = wid/2 - inset;
     tt = thick - 2*inset;
     hull() {
-        translate([len/2 - wid/2, 0, 0])
-            scale([1, 1, tt / wid]) sphere(d = wid - 2*inset);
+        // narrow round tip (top)
+        translate([len/2 - tip_d/2, 0, 0])
+            scale([1, 1, tt / tip_d]) sphere(d = tip_d - 2*inset);
+        // wide bottom, rounded corners
         for (y = [-1, 1])
             translate([-len/2 + r_bot + inset, y * (hw - r_bot + inset/2), 0])
                 scale([1, 1, tt / (2 * r_bot)]) sphere(r = r_bot - inset/2);
@@ -138,9 +145,9 @@ module component_blocks() {
     color([1.0, 0.55, 0.1, 0.95])
         translate([-len/2 + r_bot/2 + bat_l/2, 0, 0])
             cube([bat_l, bat_w, bat_t], center = true);
-    // GPS at the very tip - clearest sky view, keep metal below it
+    // GPS alone in the narrow tip - clearest sky view, fits the taper
     color([0.2, 0.8, 0.4, 0.95])
-        translate([len/2 - 4 - gps_l/2, 0, 0])
+        translate([len/2 - 5 - gps_l/2, 0, 0])
             cube([gps_l, gps_w, gps_t], center = true);
     // camera just below the GPS, lens to the front face
     color([0.3, 0.6, 1.0, 0.95])
