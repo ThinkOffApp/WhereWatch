@@ -21,13 +21,19 @@ bat_w = 40;     // cell width
 bat_l = 60;     // cell length
 
 /* [Shell] */
-wall = 1.8;
-fit  = 0.6;     // clearance around the cell
+// petrus, Aug 16: "paksuus hyvin lähellä akun paksuutta" - faces thinned to
+// 1.2 mm so the pendant carries only ~2.4 mm of structure over the cell
+// (654060 -> 9.4 mm total; 603048 preset -> 8.9 mm).
+wall = 1.2;
+fit  = 0.4;     // clearance around the cell
 
 /* [Outer size - derived from the cell, so the shape always fits] */
-wid   = bat_w + fit + 2*wall;          // ~45
-thick = bat_t + fit + 2*wall;          // ~11
-len   = bat_l + 28;                    // battery + board/camera zone (~88)
+wid   = bat_w + fit + 2*wall;          // ~43
+thick = bat_t + fit + 2*wall;          // ~9.4
+// Elongated (petrus: "pitkulainen"): the top zone holds, tip downward,
+// GPS ceramic antenna (sky-facing, no metal above it), OV5640 camera,
+// XIAO ESP32S3 Sense with the MPU-6050 beside it. 34 mm fits that stack.
+len   = bat_l + 34;                    // battery + sensor zone (~94)
 
 /* [Roundness] */
 r_bot = 12;     // soft bottom corners
@@ -120,8 +126,47 @@ module body() {
     }
 }
 
+/* [Component blocks - the layout drawing (layout_view=true) shows these] */
+gps_l = 15.7; gps_w = 13.1; gps_t = 6.2;   // ATGM336H module w/ ceramic patch
+cam_l = 8.5;  cam_w = 8.5;  cam_t = 4.5;   // OV5640 head (FPC folds below)
+mcu_l = 21;   mcu_w = 17.8; mcu_t = 3.6;   // XIAO ESP32S3 Sense
+imu_l = 20;   imu_w = 16;   imu_t = 2.5;   // MPU-6050 breakout
+haptic_d = 10; haptic_t = 2.7;             // coin vibration motor
+
+module component_blocks() {
+    // battery fills the bottom half
+    color([1.0, 0.55, 0.1, 0.95])
+        translate([-len/2 + r_bot/2 + bat_l/2, 0, 0])
+            cube([bat_l, bat_w, bat_t], center = true);
+    // GPS at the very tip - clearest sky view, keep metal below it
+    color([0.2, 0.8, 0.4, 0.95])
+        translate([len/2 - 4 - gps_l/2, 0, 0])
+            cube([gps_l, gps_w, gps_t], center = true);
+    // camera just below the GPS, lens to the front face
+    color([0.3, 0.6, 1.0, 0.95])
+        translate([cam_x, 0, thick/2 - wall - cam_t/2])
+            cube([cam_l, cam_w, cam_t], center = true);
+    // XIAO under the camera zone, IMU stacked beneath it
+    color([0.9, 0.2, 0.5, 0.95])
+        translate([len/2 - cam_from_top - mcu_l/2 + 2, 0, -mcu_t/2])
+            cube([mcu_l, mcu_w, mcu_t], center = true);
+    color([0.7, 0.4, 1.0, 0.95])
+        translate([len/2 - cam_from_top - imu_l/2 + 2, 0, -mcu_t - imu_t/2 - 0.4])
+            cube([imu_l, imu_w, imu_t], center = true);
+    // haptic coin on the battery shoulder
+    color([0.5, 0.5, 0.5, 0.95])
+        translate([-len/2 + r_bot/2 + bat_l + 4, wid/2 - wall - haptic_d/2 - 1, 0])
+            cylinder(d = haptic_d, h = haptic_t, center = true);
+}
+
+/* [Views] */
+layout_view = false;   // true = transparent shell + internal component blocks
 shape_only = false;
 // ThinkOff fuchsia (never blue - blue is not a WhereWatch colour)
+if (layout_view) {
+    component_blocks();
+    color([0.85, 0.27, 0.94, 0.28]) body();
+} else
 color([0.85, 0.27, 0.94])
 if (shape_only) {
     difference() {
