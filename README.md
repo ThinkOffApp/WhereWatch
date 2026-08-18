@@ -9,7 +9,7 @@ nothing leaves your house.
 ## Two devices. Zero cloud.
 
 Plug in the Raspberry Pi. Charge the pendant over USB-C. Wear it.
-That is the whole system.
+That is the whole system. CodeWatch is the phone and watch dashboard for the same local *Watch family.
 
 WhereWatch remembers where you placed your things, privately. The Pi stores
 a photo of the last useful observation of an item, together with its time and
