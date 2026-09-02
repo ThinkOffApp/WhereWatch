@@ -46,9 +46,10 @@ The only solder joint this build truly needs. Do it first so the battery —
 and with it, untethered testing of everything after — is available.
 
 - [ ] Tin the two battery pads on the underside of the XIAO.
-- [ ] Red → **B+", black → B−**. Double-check polarity against the silks
-      before the iron touches anything.
-- [ ] Joint, inspect ( shiny, wetted, no bridges), sleeve each pad with
+- [ ] Red → **B+**, black → **B−**. Double-check polarity against the silks
+      before the iron touches anything. Use the half of the JST-PH pair that
+      mates with the battery's own lead (plug them together first, then solder).
+- [ ] Joint, inspect (shiny, wetted, no bridges), sleeve each pad with
       heat-shrink.
 - [ ] Strain-relief the pigtail to the board edge so a yank takes the
       tape, not the pad.
@@ -56,7 +57,10 @@ and with it, untethered testing of everything after — is available.
       ~3.7–4.2V, correct polarity. Then connect, and the onboard charge LED
       behaves when USB-C is plugged in.
 - [ ] Battery voltage readable on an ADC pin (needed later for low-battery
-      mode + honest haptic status).
+      mode + honest haptic status). The XIAO ESP32S3 has no battery-sense
+      pin and the cell is 3.7–4.2 V, so **never** wire B+ straight to a 3.3 V
+      ADC input: two equal resistors (200 kΩ + 200 kΩ) from B+ to GND, the
+      midpoint on the ADC pin, read ×2 in firmware. ~10 µA standing drain.
 
 ### 2. IMU on I2C
 
@@ -65,7 +69,8 @@ and with it, untethered testing of everything after — is available.
 - [ ] Bring-up: WHO_AM_I reads back 0x68/0x69; raw accel changes when the
       board tilts.
 - [ ] Hot-glue / foam-tape the breakout flat inside the case footprint —
-      it does half the leave-detection work and must not flex.
+      it does half the leave-detection work and must not flex. Mark the
+      axes on the tape so the firmware knows which way is down.
 
 ### 3. Button
 
@@ -76,9 +81,14 @@ and with it, untethered testing of everything after — is available.
 
 ### 4. Vibration module
 
-- [ ] Coin/LRA motor → transistor → GPIO, **flyback diode across the motor
-      terminals** (cathode to the + side). Transistor base through a ~100kΩ
-      resistor to the GPIO.
+- [ ] Preferred: the **vibration motor module** on the shopping list (coin
+      motor with a MOSFET driver on the board). Three wires: VCC → 3V3,
+      GND → GND, IN → a GPIO. No discrete parts.
+- [ ] Discrete alternative (no module): coin/LRA motor → NPN transistor
+      (S8050 / 2N2222) → GPIO, **flyback diode across the motor terminals**
+      (cathode to the + side), transistor base through **~1 kΩ** to the GPIO.
+      (A 100 kΩ base resistor gives ~30 µA of base current: the transistor
+      never saturates, the motor barely twitches and the transistor heats.)
 - [ ] Bring-up: drive the agreed pattern — 1 buzz = on+connected,
       2 buzzes = offline, silence = off. Motor glued to a rigid case wall
       so you actually feel it through the pendant.
@@ -108,6 +118,10 @@ and with it, untethered testing of everything after — is available.
 
 ## 7. Enclosure
 
+- [ ] **Clip or desolder the pre-soldered pin headers first.** The reordered
+      XIAO is the pre-soldered variant; the pins add ~8 mm under the board and
+      the teardrop is 9.3 mm thick. Headers are handy on the bench (Dupont
+      jumpers for the IMU), fatal in the case. Do this after step 6 passes.
 - [ ] Print the teardrop pendant from `cad/pendant.stl` (sources in
       `cad/pendant.scad`).
 - [ ] Dry-fit everything; nothing pinches the camera ribbon or the battery.
