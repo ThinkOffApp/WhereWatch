@@ -48,15 +48,26 @@ charge-only.
 
 ## 2. Camera
 
-USB unplugged. On the camera board that sits on top of the XIAO there is a
-small connector with a flip-up latch. Lift the latch, slide the OV5640's
-ribbon in straight, shiny contacts facing down toward the board, push the
-latch closed. Lay the ribbon flat and tape it down with a strip of Kapton
-(the amber tape).
+USB unplugged. The small board clipped on top of the XIAO already carries
+a camera (the OV2640 Seeed ships) sitting in a flat connector with a dark
+plastic bar along its edge. That bar is the latch.
 
-Check: the ribbon is seated evenly, not skewed, and the latch is closed.
-There is nothing to see on screen yet; the picture test comes with the
-firmware.
+1. Look at the old ribbon before touching it: note which way its shiny
+   contact strip faces. The new one goes in the same way.
+2. Flip the bar up with a fingernail (it hinges on the side away from the
+   ribbon; on some connectors it slides out a millimetre instead of
+   hinging). The old ribbon now slides out with no force.
+3. Slide the OV5640's ribbon in straight, all the way, contacts facing the
+   same way as the old one.
+4. Press the bar back down (or slide it back in) until it stops.
+5. Tug the ribbon very lightly: it must not move. Tape it flat with a
+   strip of Kapton (the amber tape) so it cannot lever the latch open.
+
+If the new ribbon is wider or narrower than the slot, stop: it is the wrong
+module for this connector. The XIAO-fit OV5640 is the one that fits.
+
+Check: the ribbon sits evenly, not skewed, and the latch is closed. There
+is nothing to see on screen yet; the picture test comes with the firmware.
 
 ## 3. Motion sensor (GY-521)
 
