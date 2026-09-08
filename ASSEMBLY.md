@@ -37,12 +37,14 @@ wire**, plug it back in for the check.
 
 ## 1. Does the brain live?
 
-Plug the XIAO into the computer with USB-C. A small LED on the board lights.
-The computer sees a new USB device (on a Mac: Apple menu > About This Mac >
-System Report > USB, a "USB JTAG/serial" entry appears).
+Plug the XIAO into the computer with USB-C. The board has no power light:
+its only two LEDs are a charge LED (battery only, step 8) and a user LED
+that stays dark until firmware drives it. So the sign of life is the
+computer: it sees a new USB device (on a Mac: Apple menu > About This Mac >
+System Report > USB, a "USB JTAG/serial debug unit" entry appears).
 
-Check: LED on, device listed. If not, try another cable; many USB-C cables
-are charge-only.
+Check: device listed. If not, try another cable; many USB-C cables are
+charge-only.
 
 ## 2. Camera
 
@@ -143,10 +145,13 @@ Do this last, with everything else already working on USB.
    done. Shiny joint, no bridge between the pads.
 5. Slip heat-shrink over each joint. Tape the wire down so a pull on the
    lead takes the tape, not the pad.
-6. Plug the battery in. Switch on. The board's LED comes up without USB.
-   Plug USB in: the charge LED comes on.
+6. Plug the battery in. Switch on. Nothing lights by itself (no power LED
+   on this board), so the check is the multimeter: black probe on GND,
+   red on the **3V3** pin, it reads about 3.3 V with the switch on and 0 with
+   it off. Then plug USB in: the charge LED comes on and goes off again when
+   the cell is full.
 
-Check: runs on battery alone; charges on USB.
+Check: 3.3 V on the 3V3 pin from the battery alone; charge LED on USB.
 
 ## 9. What happens next
 
