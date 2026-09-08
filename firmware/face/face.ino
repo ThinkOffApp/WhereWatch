@@ -16,7 +16,7 @@
 //   #gps 0|1          -> GNSS power switch off/on
 //   #hold             -> keep the screen on (no auto-off) until #release
 //   #release          -> allow auto-off again
-//   #ping             -> replies "pong" on the same UART (link check)
+//   #ping             -> replies "pong" on the port the ping came from (link check)
 // The screen goes dark SCREEN_TIMEOUT_MS after the last message unless held,
 // and shows "no link" if the brain has been silent for LINK_TIMEOUT_MS.
 //
@@ -109,7 +109,7 @@ static void pushLine(const String &s) {
   rows[ROWS - 1] = s.substring(0, COLS);
 }
 
-static void handle(String line) {
+static void handle(String line, Stream &from) {
   line.trim();
   if (!line.length()) return;
   lastMsgMs = millis();
@@ -139,7 +139,7 @@ static void handle(String line) {
   } else if (cmd == "#release") {
     hold = false;
   } else if (cmd == "#ping") {
-    Brain.println("pong");
+    from.println("pong");              // answered where it came from (UART or USB)
   }
   redraw();
 }
@@ -166,7 +166,7 @@ void loop() {
   while (Brain.available()) {
     char c = (char)Brain.read();
     if (c == '\n' || c == '\r') {
-      if (buf.length()) handle(buf);
+      if (buf.length()) handle(buf, Brain);
       buf = "";
     } else if (buf.length() < 120) {
       buf += c;
@@ -178,7 +178,7 @@ void loop() {
     char c = (char)Serial.read();
     static String ubuf;
     if (c == '\n' || c == '\r') {
-      if (ubuf.length()) handle(ubuf);
+      if (ubuf.length()) handle(ubuf, Serial);
       ubuf = "";
     } else if (ubuf.length() < 120) {
       ubuf += c;
