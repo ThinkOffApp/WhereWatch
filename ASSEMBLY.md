@@ -69,6 +69,16 @@ plastic bar along its edge. That bar is the latch.
 If the new ribbon is wider or narrower than the slot, stop: it is the wrong
 module for this connector. The XIAO-fit OV5640 is the one that fits.
 
+**If the door comes off** (it happens; it sits on two tiny side pivots):
+if the bar is whole, set it back into the two slots at the ends of the
+connector and press it down with the ribbon in place. If it is really
+broken, the bench fix is: ribbon in, gold stripes down, all the way in, a
+small pad of foam or folded paper on top of the ribbon end, and Kapton
+pulled tight over the whole connector so the pad presses the ribbon onto
+the contacts. Once the firmware shows a picture, a drop of hot glue over the
+connector makes it permanent. The clean fix is a new XIAO ESP32S3 Sense (the
+camera board comes with it); the damaged one stays the bench unit.
+
 Check: the ribbon sits evenly, not skewed, and the latch is closed. There
 is nothing to see on screen yet; the picture test comes with the firmware.
 
