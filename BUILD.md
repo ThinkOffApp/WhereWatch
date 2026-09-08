@@ -30,7 +30,14 @@ Rules of the bench:
 - [ ] JST battery pigtail (matches the LiPo's connector) + heat-shrink.
 - [ ] Tools: USB-C soldering iron, lead-free solder, flux, tweezers,
       multimeter, Kapton tape.
-- [ ] (Optional) GNSS module, e.g. ATGM336H, for the spare UART.
+- [ ] GNSS module (in hand: small shielded UART receiver + ceramic patch
+      antenna on a u.FL pigtail) for the spare UART.
+- [ ] 0.42" 72x40 I2C OLED, **bare 4-pin module** (VCC GND SCL SDA). The
+      purple ESP32-C3 board with the same panel on it is a second
+      microcontroller, not a display: keep it for a desk beacon, do not
+      wire it into the pendant.
+- [ ] Mic: none to add — the Sense expansion board carries the PDM mic
+      (reserved pins, see the pin map below).
 
 ---
 
@@ -60,7 +67,7 @@ and with it, untethered testing of everything after — is available.
       mode + honest haptic status). The XIAO ESP32S3 has no battery-sense
       pin and the cell is 3.7–4.2 V, so **never** wire B+ straight to a 3.3 V
       ADC input: two equal resistors (200 kΩ + 200 kΩ) from B+ to GND, the
-      midpoint on the ADC pin, read ×2 in firmware. ~10 µA standing drain.
+      midpoint on **D0** (ADC), read ×2 in firmware. ~10 µA standing drain.
 
 ### 2. IMU on I2C
 
@@ -72,9 +79,35 @@ and with it, untethered testing of everything after — is available.
       it does half the leave-detection work and must not flex. Mark the
       axes on the tape so the firmware knows which way is down.
 
+### 2b. OLED on the same I2C
+
+- [ ] The 0.42" OLED shares the bus with the IMU: VCC → 3V3, GND → GND,
+      SCL → D5, SDA → D4 (same two wires, second device). Its I2C address
+      must differ from the IMU's 0x68/0x69; check the module's silk or
+      listing [verify] (these panels usually sit at 0x3C).
+- [ ] Bring-up: an I2C scan shows two devices; the panel draws a test line.
+      Default face: dark. It lights on a button tap or a wrist-flick from
+      the IMU and goes dark again after a few seconds — an OLED spends power
+      only on lit pixels, so the face costs nothing while it is off.
+- [ ] Mount it behind a window in the wide end of the case with a lip
+      around the glass (it rides on a chest); add the window to
+      `cad/pendant.scad` before the next print.
+
+### 2c. GNSS on the spare UART
+
+- [ ] Module VCC → 3V3, GND → GND, module **TX → D7 (XIAO RX)**, module
+      **RX → D6 (XIAO TX)**. Patch antenna on the u.FL pigtail, antenna
+      face toward the lens side of the case (sky side when worn).
+- [ ] Bring-up: NMEA sentences arrive on the UART at the module's default
+      baud (printed on its listing/label [verify]); take it outdoors and
+      wait for the first fix — a cold start can take minutes, that is normal.
+- [ ] Power: the receiver is the pendant's steadiest drain after Wi-Fi, so
+      firmware keeps it off at home (Wi-Fi visible) and powers it only when
+      the leave-detector fires (HARDWARE.md: away-from-home location).
+
 ### 3. Button
 
-- [ ] 6mm momentary across a GPIO + GND (internal pull-up), through the
+- [ ] 6mm momentary across **D1** + GND (internal pull-up), through the
       case button cut-out.
 - [ ] Bring-up: debounced read of tap / double-tap / hold — these carry the
       voice-tag / status-buzz / power gestures from HARDWARE.md.
@@ -83,7 +116,7 @@ and with it, untethered testing of everything after — is available.
 
 - [ ] Preferred: the **vibration motor module** on the shopping list (coin
       motor with a MOSFET driver on the board). Three wires: VCC → 3V3,
-      GND → GND, IN → a GPIO. No discrete parts.
+      GND → GND, IN → **D3**. No discrete parts.
 - [ ] Discrete alternative (no module): coin/LRA motor → NPN transistor
       (S8050 / 2N2222) → GPIO, **flyback diode across the motor terminals**
       (cathode to the + side), transistor base through **~1 kΩ** to the GPIO.
@@ -130,10 +163,34 @@ and with it, untethered testing of everything after — is available.
 
 ---
 
+## Pin map (XIAO ESP32S3 Sense)
+
+Labels as printed on the XIAO; GPIO numbers from Seeed's XIAO ESP32S3
+getting-started page (pin map table). This is the map the firmware config
+will carry; change it here first.
+
+| XIAO pin | GPIO | Pendant use |
+|----------|------|-------------|
+| D0 | GPIO1 | battery divider midpoint (ADC), step 1 |
+| D1 | GPIO2 | button to GND, internal pull-up, step 3 |
+| D2 | GPIO3 | spare (the Sense board uses it as SD-card CS; free only while no SD card is used) |
+| D3 | GPIO4 | vibration module IN, step 4 |
+| D4 | GPIO5 | I2C SDA: IMU + OLED, steps 2 and 2b |
+| D5 | GPIO6 | I2C SCL: IMU + OLED, steps 2 and 2b |
+| D6 | GPIO43 | UART TX → GNSS RX, step 2c |
+| D7 | GPIO44 | UART RX ← GNSS TX, step 2c |
+| D8 D9 D10 | GPIO7 GPIO8 GPIO9 | reserved by the Sense board (SD-card SPI), do not use |
+| 3V3 | — | IMU, OLED, GNSS supply |
+| B+ / B− | — | battery pads (underside), step 1 |
+
+Not on the header but taken by the Sense board (Seeed page): microphone on
+GPIO41/42, camera on GPIO10–18, 38–40, 47, 48. Nothing else may be wired
+to those.
+
 ## Notes
 
-- Pin map for the assembled pendant gets written into firmware config once
-  the first board is alive; keep it next to this file when it exists.
+- The pin map above is the one the firmware config carries; keep the two
+  in step.
 - Open questions carried from HARDWARE.md: exact OV5640 module ↔ XIAO
   connector, ESP-SR wake-word RAM budget. Both block the *v2* parts order,
   not this build.
