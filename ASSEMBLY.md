@@ -100,7 +100,10 @@ Four wires plus the antenna:
 | RX | D6 |
 
 TX goes to D7 and RX to D6: the module talks into the XIAO's ear and
-listens to its mouth, so the labels cross. Push the antenna's tiny round
+listens to its mouth, so the labels cross. VCC on 3V3 is for the table
+only: in the finished pendant the GPS gets its power through a small
+switch the firmware controls from **D2**, so it can be off at home
+(BUILD.md step 2c). Push the antenna's tiny round
 plug onto the matching socket on the module until it clicks.
 
 Check: if the module has an LED, it usually starts blinking only once it
