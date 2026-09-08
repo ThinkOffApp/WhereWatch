@@ -95,10 +95,12 @@ Four wires. Label on the sensor → label on the XIAO:
 
 Leave the sensor's other pins (XDA, XCL, AD0, INT) empty.
 
-Solder or not? Look at the sensor: if its pin strip is already soldered
-on, no solder, four female-to-female jumper wires from the sensor pins to
-the XIAO header pins and you are done. If the strip is loose in the bag,
-skip it and solder four wires straight into the sensor's four holes (VCC
+Solder or not? Look at the sensor. The "pin strip" is the row of pointed
+metal pins in a black plastic strip (eight in a row on this sensor; the
+XIAO has the same kind along both edges). If that row is already standing
+up out of the sensor's board and does not come off, no solder, four female-to-female jumper wires from the sensor pins to
+the XIAO header pins and you are done. If the row is a separate loose piece in
+the bag, skip it and solder four wires straight into the sensor's four holes (VCC
 GND SCL SDA) with jumper ends on the XIAO side: that is the final pendant
 wiring anyway (no header, lies flat in the case), and four easy joints are
 the right warm-up before the battery pads in step 8. No iron yet: push the
