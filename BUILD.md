@@ -173,7 +173,7 @@ will carry; change it here first.
 |----------|------|-------------|
 | D0 | GPIO1 | battery divider midpoint (ADC), step 1 |
 | D1 | GPIO2 | button to GND, internal pull-up, step 3 |
-| D2 | GPIO3 | spare (the Sense board uses it as SD-card CS; free only while no SD card is used) |
+| D2 | GPIO3 | spare (ADC-capable; the Sense board's SD-card CS is GPIO21, not this pin) |
 | D3 | GPIO4 | vibration module IN, step 4 |
 | D4 | GPIO5 | I2C SDA: IMU + OLED, steps 2 and 2b |
 | D5 | GPIO6 | I2C SCL: IMU + OLED, steps 2 and 2b |
@@ -183,9 +183,9 @@ will carry; change it here first.
 | 3V3 | — | IMU, OLED, GNSS supply |
 | B+ / B− | — | battery pads (underside), step 1 |
 
-Not on the header but taken by the Sense board (Seeed page): microphone on
-GPIO41/42, camera on GPIO10–18, 38–40, 47, 48. Nothing else may be wired
-to those.
+Not on the header but taken by the Sense board (Seeed pages): microphone on
+GPIO41/42, SD-card CS on GPIO21, camera on GPIO10–18, 38–40, 47, 48.
+Nothing else may be wired to those.
 
 ## Notes
 
