@@ -54,12 +54,15 @@ plastic bar along its edge. That bar is the latch.
 
 1. Look at the old ribbon before touching it: note which way its shiny
    contact strip faces. The new one goes in the same way.
-2. Flip the bar up with a fingernail (it hinges on the side away from the
-   ribbon; on some connectors it slides out a millimetre instead of
-   hinging). The old ribbon now slides out with no force.
-3. Slide the OV5640's ribbon in straight, all the way, contacts facing the
-   same way as the old one.
-4. Press the bar back down (or slide it back in) until it stops.
+2. The whole black top of the connector lifts up like a small door. A
+   fingernail is usually too soft: slide the tip of a small flat screwdriver
+   or a plastic spudger under the black top at the ribbon edge and lever it
+   upward; it swings up a few millimetres (build report on the same board:
+   dronebotworkshop.com/xiao-esp32s3-sense). The old ribbon now slides out
+   with no force.
+3. Slide the OV5640's ribbon in straight, all the way forward, conductive
+   side facing down toward the board.
+4. Press the door back down until it stops.
 5. Tug the ribbon very lightly: it must not move. Tape it flat with a
    strip of Kapton (the amber tape) so it cannot lever the latch open.
 
