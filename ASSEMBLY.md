@@ -109,27 +109,28 @@ a first reading, not for anything after.
 
 Check: nothing visible yet. Keep the board flat; note which way "up" is.
 
-## 4. The little screen (OLED)
+## 4. The little screen (the purple board)
 
-Which board: a bare OLED module has exactly four holes, VCC GND SCL SDA.
-The purple board whose holes read V5 GD V3 RX TX 0–10 is the ESP32-C3 dev
-board; its screen is wired inside to that chip and cannot be driven from
-the XIAO, so it stays out. Until a bare 0.42" module arrives, the Segor
-1.3" module (also VCC GND SCL SDA) is the bench screen and wires the same
-way.
+The purple board with the tiny screen is the pendant's face. It is a small
+chip of its own that only shows what the XIAO tells it, and its spare pins
+also work the vibration motor and the GPS switch. It needs its own little
+program first (`firmware/face`; it gets flashed over the purple board's
+USB-C, ask in the room and it is done from the MacBook in a minute).
 
-Same four labels, same four XIAO pins as the motion sensor; both live on
-the same two signal wires and do not mind each other:
+Four wires, label on the purple board → label on the XIAO:
 
-| OLED pin | XIAO pin |
-|---------|----------|
-| VCC | 3V3 |
-| GND | GND |
-| SCL | D5 |
-| SDA | D4 |
+| purple pin | XIAO pin |
+|-----------|----------|
+| V3 | 3V3 |
+| GD | GND |
+| RX | D6 |
+| TX | D7 |
 
-Check: the screen stays dark until the firmware talks to it. Dark is
-correct.
+RX to D6 and TX to D7: crossed, one talks, the other listens.
+
+Check: with its program on it, the purple board shows "face ready" as soon
+as it has power, even before the XIAO says anything. The Segor 1.3 inch
+module stays in the drawer.
 
 ## 5. GPS
 
@@ -139,15 +140,15 @@ Four wires plus the antenna:
 |--------|----------|
 | VCC | 3V3 |
 | GND | GND |
-| TX | D7 |
-| RX | D6 |
+| TX | D2 |
+| RX | D3 |
 
-TX goes to D7 and RX to D6: the module talks into the XIAO's ear and
+TX goes to D2 and RX to D3: the module talks into the XIAO's ear and
 listens to its mouth, so the labels cross. VCC on 3V3 is for the table
 only: in the finished pendant the GPS gets its power through a small
-switch the firmware controls from **D2**, so it can be off at home
-(BUILD.md step 2c). Push the antenna's tiny round
-plug onto the matching socket on the module until it clicks.
+switch that the purple board controls from its pin 3, so it can be off at
+home (BUILD.md step 2c). Push the antenna's tiny round plug onto the
+matching socket on the module until it clicks.
 
 Check: if the module has an LED, it usually starts blinking only once it
 has a satellite fix, which takes minutes and needs sky. Indoors, no blink
@@ -166,7 +167,8 @@ Check: nothing visible yet.
 
 ## 7. Vibration module
 
-Three wires: **VCC → 3V3**, **GND → GND**, **IN → D3**.
+Three wires, and this one goes to the purple board, not the XIAO:
+**VCC → XIAO 3V3**, **GND → XIAO GND**, **IN → purple board pin 10**.
 
 Check: nothing until firmware. Hold the module in your hand later for the
 first buzz, it is easy to miss on the table.
