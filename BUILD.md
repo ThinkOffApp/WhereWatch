@@ -95,9 +95,15 @@ and with it, untethered testing of everything after — is available.
 
 ### 2c. GNSS on the spare UART
 
-- [ ] Module VCC → 3V3, GND → GND, module **TX → D7 (XIAO RX)**, module
+- [ ] Module GND → GND, module **TX → D7 (XIAO RX)**, module
       **RX → D6 (XIAO TX)**. Patch antenna on the u.FL pigtail, antenna
       face toward the lens side of the case (sky side when worn).
+- [ ] Module VCC **not** straight to 3V3: the XIAO's 3V3 rail is always on,
+      so firmware could never switch the receiver off. Bench: VCC → 3V3 is
+      fine for bring-up. Final build: VCC through a small high-side load
+      switch (P-MOSFET or a load-switch module) whose control pin is **D2**,
+      or the module's own enable/standby pin if it has one [verify on the
+      module]. Firmware then holds D2 off at home.
 - [ ] Bring-up: NMEA sentences arrive on the UART at the module's default
       baud (printed on its listing/label [verify]); take it outdoors and
       wait for the first fix — a cold start can take minutes, that is normal.
@@ -173,7 +179,7 @@ will carry; change it here first.
 |----------|------|-------------|
 | D0 | GPIO1 | battery divider midpoint (ADC), step 1 |
 | D1 | GPIO2 | button to GND, internal pull-up, step 3 |
-| D2 | GPIO3 | spare (ADC-capable; the Sense board's SD-card CS is GPIO21, not this pin) |
+| D2 | GPIO3 | GNSS power enable (load switch or module EN), step 2c |
 | D3 | GPIO4 | vibration module IN, step 4 |
 | D4 | GPIO5 | I2C SDA: IMU + OLED, steps 2 and 2b |
 | D5 | GPIO6 | I2C SCL: IMU + OLED, steps 2 and 2b |
