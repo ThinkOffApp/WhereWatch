@@ -23,9 +23,13 @@
 // Board variants: the 0.42" panel sits on GPIO5/6 (01Space v1) or GPIO8/9
 // (later boards). Both pairs are probed at boot for a device at 0x3C.
 //
-// Build: arduino-cli compile --fqbn esp32:esp32:esp32c3 firmware/face
+// Build (CDCOnBoot=cdc is REQUIRED: without it arduino-esp32 puts Serial on
+// UART0, whose default pins on the C3 are GPIO20/21, the very pins of the
+// brain link; the guard around Serial.begin() below makes a plain build
+// merely lose USB debug instead of the link):
+//   arduino-cli compile --fqbn esp32:esp32:esp32c3:CDCOnBoot=cdc firmware/face
 // Needs the U8g2 library. Upload with the board on USB-C:
-//   arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp32:esp32:esp32c3 firmware/face
+//   arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp32:esp32:esp32c3:CDCOnBoot=cdc firmware/face
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -79,11 +83,13 @@ static void initDisplay() {
 
 static void redraw() {
   if (!oled) return;
-  oled->clearBuffer();
+  static bool asleep = false;
   if (!screenOn) {
-    oled->sendBuffer();
+    if (!asleep) { oled->setPowerSave(1); asleep = true; }   // panel really off, not just black
     return;
   }
+  if (asleep) { oled->setPowerSave(0); asleep = false; }
+  oled->clearBuffer();
   if (bigText.length()) {
     oled->setFont(u8g2_font_logisoso16_tf);
     int w = oled->getStrWidth(bigText.c_str());
@@ -144,7 +150,9 @@ void setup() {
   pinMode(GPS_EN_PIN, OUTPUT);
   digitalWrite(GPS_EN_PIN, LOW);      // GNSS off until the brain says otherwise
   Brain.begin(BAUD, SERIAL_8N1, UART_RX_PIN, UART_TX_PIN);
-  Serial.begin(BAUD);                 // USB, debug only
+#if ARDUINO_USB_CDC_ON_BOOT
+  Serial.begin(BAUD);                 // USB CDC, debug only (never UART0: that would steal GPIO20/21)
+#endif
   initDisplay();
   pushLine("WhereWatch");
   pushLine(oled ? "face ready" : "no panel");
@@ -165,6 +173,7 @@ void loop() {
     }
   }
   // Same protocol on USB, so the face can be tried from a computer alone.
+#if ARDUINO_USB_CDC_ON_BOOT
   while (Serial.available()) {
     char c = (char)Serial.read();
     static String ubuf;
@@ -175,23 +184,24 @@ void loop() {
       ubuf += c;
     }
   }
+#endif
   uint32_t now = millis();
+  static bool linkLost = false;
   if (vibUntilMs && (int32_t)(now - vibUntilMs) >= 0) {
     digitalWrite(VIB_PIN, LOW);
     vibUntilMs = 0;
   }
-  if (screenOn && !hold && now - lastMsgMs > SCREEN_TIMEOUT_MS) {
+  if (screenOn && !hold && !linkLost && now - lastMsgMs > SCREEN_TIMEOUT_MS) {
     screenOn = false;
     redraw();
   }
-  static bool linkLost = false;
   if (!linkLost && now - lastMsgMs > LINK_TIMEOUT_MS) {
     linkLost = true;
     screenOn = true;
     pushLine("no link");
-    redraw();
+    redraw();                          // stays up: the auto-off below skips while linkLost
   } else if (linkLost && now - lastMsgMs < LINK_TIMEOUT_MS) {
-    linkLost = false;
+    linkLost = false;                  // handle() already reset lastMsgMs on the new message
   }
   delay(5);
 }
