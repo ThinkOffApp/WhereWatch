@@ -111,6 +111,13 @@ Check: nothing visible yet. Keep the board flat; note which way "up" is.
 
 ## 4. The little screen (OLED)
 
+Which board: a bare OLED module has exactly four holes, VCC GND SCL SDA.
+The purple board whose holes read V5 GD V3 RX TX 0–10 is the ESP32-C3 dev
+board; its screen is wired inside to that chip and cannot be driven from
+the XIAO, so it stays out. Until a bare 0.42" module arrives, the Segor
+1.3" module (also VCC GND SCL SDA) is the bench screen and wires the same
+way.
+
 Same four labels, same four XIAO pins as the motion sensor; both live on
 the same two signal wires and do not mind each other:
 
