@@ -32,10 +32,11 @@ Rules of the bench:
       multimeter, Kapton tape.
 - [ ] GNSS module (in hand: small shielded UART receiver + ceramic patch
       antenna on a u.FL pigtail) for the spare UART.
-- [ ] 0.42" 72x40 I2C OLED, **bare 4-pin module** (VCC GND SCL SDA). The
-      purple ESP32-C3 board with the same panel on it is a second
-      microcontroller, not a display: keep it for a desk beacon, do not
-      wire it into the pendant.
+- [ ] The **face board**: the purple ESP32-C3 dev board with the 0.42"
+      72x40 OLED on it (petrus, 8 Sep: "I'd like to use the small one").
+      It is a second microcontroller; it runs `firmware/face` and only
+      draws what the XIAO sends it over UART, and its spare pins drive
+      the vibration module and the GNSS power switch.
 - [ ] Mic: none to add — the Sense expansion board carries the PDM mic
       (reserved pins, see the pin map below).
 
@@ -79,31 +80,34 @@ and with it, untethered testing of everything after — is available.
       it does half the leave-detection work and must not flex. Mark the
       axes on the tape so the firmware knows which way is down.
 
-### 2b. OLED on the same I2C
+### 2b. Face board on the UART
 
-- [ ] The 0.42" OLED shares the bus with the IMU: VCC → 3V3, GND → GND,
-      SCL → D5, SDA → D4 (same two wires, second device). Its I2C address
-      must differ from the IMU's 0x68/0x69; check the module's silk or
-      listing [verify] (these panels usually sit at 0x3C).
-- [ ] Bring-up: an I2C scan shows two devices; the panel draws a test line.
-      Default face: dark. It lights on a button tap or a wrist-flick from
-      the IMU and goes dark again after a few seconds — an OLED spends power
-      only on lit pixels, so the face costs nothing while it is off.
+- [ ] Flash `firmware/face` onto the purple board over its own USB-C first
+      (see the sketch header); on boot it shows "face ready" by itself.
+- [ ] Four wires: XIAO 3V3 → V3, XIAO GND → GD, XIAO **D6 (TX) → RX**,
+      XIAO **D7 (RX) → TX**. Nothing on the I2C bus: the panel hangs off
+      the face board's own chip.
+- [ ] Bring-up: any text line sent from the XIAO at 115200 baud appears on
+      the panel; `#ping` answers `pong`. Default face: dark after 8 s; it
+      lights on every message (button tap, wrist-flick, answer) — an OLED
+      spends power only on lit pixels.
 - [ ] Mount it behind a window in the wide end of the case with a lip
       around the glass (it rides on a chest); add the window to
       `cad/pendant.scad` before the next print.
 
 ### 2c. GNSS on the spare UART
 
-- [ ] Module GND → GND, module **TX → D7 (XIAO RX)**, module
-      **RX → D6 (XIAO TX)**. Patch antenna on the u.FL pigtail, antenna
-      face toward the lens side of the case (sky side when worn).
+- [ ] Module GND → GND, module **TX → D2 (XIAO RX, second UART)**, module
+      **RX → D3 (XIAO TX, second UART)**; the ESP32-S3 maps its second UART
+      to any pin, firmware config says D2/D3. Patch antenna on the u.FL
+      pigtail, antenna face toward the lens side of the case (sky side
+      when worn).
 - [ ] Module VCC **not** straight to 3V3: the XIAO's 3V3 rail is always on,
       so firmware could never switch the receiver off. Bench: VCC → 3V3 is
       fine for bring-up. Final build: VCC through a small high-side load
-      switch (P-MOSFET or a load-switch module) whose control pin is **D2**,
-      or the module's own enable/standby pin if it has one [verify on the
-      module]. Firmware then holds D2 off at home.
+      switch (P-MOSFET or a load-switch module) whose control line is the
+      **face board's pin 3** (`#gps 1` / `#gps 0` over the UART), or the
+      module's own enable/standby pin if it has one [verify on the module].
 - [ ] Bring-up: NMEA sentences arrive on the UART at the module's default
       baud (printed on its listing/label [verify]); take it outdoors and
       wait for the first fix — a cold start can take minutes, that is normal.
@@ -122,7 +126,8 @@ and with it, untethered testing of everything after — is available.
 
 - [ ] Preferred: the **vibration motor module** on the shopping list (coin
       motor with a MOSFET driver on the board). Three wires: VCC → 3V3,
-      GND → GND, IN → **D3**. No discrete parts.
+      GND → GND, IN → **face board pin 10** (`#vib 200` over the UART buzzes
+      200 ms). No discrete parts, and no XIAO pin spent.
 - [ ] Discrete alternative (no module): coin/LRA motor → NPN transistor
       (S8050 / 2N2222) → GPIO, **flyback diode across the motor terminals**
       (cathode to the + side), transistor base through **~1 kΩ** to the GPIO.
@@ -179,12 +184,12 @@ will carry; change it here first.
 |----------|------|-------------|
 | D0 | GPIO1 | battery divider midpoint (ADC), step 1 |
 | D1 | GPIO2 | button to GND, internal pull-up, step 3 |
-| D2 | GPIO3 | GNSS power enable (load switch or module EN), step 2c |
-| D3 | GPIO4 | vibration module IN, step 4 |
-| D4 | GPIO5 | I2C SDA: IMU + OLED, steps 2 and 2b |
-| D5 | GPIO6 | I2C SCL: IMU + OLED, steps 2 and 2b |
-| D6 | GPIO43 | UART TX → GNSS RX, step 2c |
-| D7 | GPIO44 | UART RX ← GNSS TX, step 2c |
+| D2 | GPIO3 | second UART RX ← GNSS TX, step 2c |
+| D3 | GPIO4 | second UART TX → GNSS RX, step 2c |
+| D4 | GPIO5 | I2C SDA: IMU, step 2 |
+| D5 | GPIO6 | I2C SCL: IMU, step 2 |
+| D6 | GPIO43 | UART TX → face board RX, step 2b |
+| D7 | GPIO44 | UART RX ← face board TX, step 2b |
 | D8 D9 D10 | GPIO7 GPIO8 GPIO9 | reserved by the Sense board (SD-card SPI), do not use |
 | 3V3 | — | IMU, OLED, GNSS supply |
 | B+ / B− | — | battery pads (underside), step 1 |
@@ -192,6 +197,11 @@ will carry; change it here first.
 Not on the header but taken by the Sense board (Seeed pages): microphone on
 GPIO41/42, SD-card CS on GPIO21, camera on GPIO10–18, 38–40, 47, 48.
 Nothing else may be wired to those.
+
+Face board (ESP32-C3 0.42" OLED) pins used, labels as printed on it:
+RX (GPIO20) and TX (GPIO21) = the UART to the XIAO; **10** = vibration IN;
+**3** = GNSS power switch; V3 and GD = supply. Its panel sits on GPIO5/6 or
+GPIO8/9 depending on the board revision; `firmware/face` probes both.
 
 ## Notes
 
