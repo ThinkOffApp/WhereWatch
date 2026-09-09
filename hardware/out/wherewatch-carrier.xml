@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/petrus/work/wherewatch-pcb/hardware/wherewatch-carrier.kicad_sch</source>
-    <date>2026-09-09T22:10:15</date>
+    <date>2026-09-09T22:15:15</date>
     <tool>Eeschema 10.0.6</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -38,7 +38,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>49cd5591-2574-4f61-a735-b8164dbcfb5d</tstamps>
+      <tstamps>0acd1294-f279-40d0-8fe7-1881cf283786</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -62,7 +62,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>7f7e34b5-b3aa-4e4e-b042-971ebd02f929</tstamps>
+      <tstamps>147f3330-b6d1-4344-a892-709e4ae815a5</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -86,7 +86,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>ca5c8e2b-c90b-4b03-bc0b-d9179bbce904</tstamps>
+      <tstamps>d3044550-2e1a-4131-97d7-e249e6262c37</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -110,7 +110,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>eecc4aeb-ca05-4417-9e1c-5027a314b774</tstamps>
+      <tstamps>8dbcedca-d347-44fd-a3f3-1dd2ed2b4568</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -134,7 +134,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>3c6f7a8e-2a22-40cb-aa95-b2d26e9444cc</tstamps>
+      <tstamps>a7cb9738-adc3-413e-bea4-040e55688be9</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -158,7 +158,7 @@
       <property name="ki_keywords" value="cap capacitor"/>
       <property name="ki_fp_filters" value="C_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>db6ddb92-d792-462d-ba54-ca47a78287e6</tstamps>
+      <tstamps>a3565382-a250-472c-bc16-0bff4878222a</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -184,7 +184,7 @@
       <property name="ki_keywords" value="diode"/>
       <property name="ki_fp_filters" value="D*DO?41*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>e53d1f85-c354-491f-916c-f876d89e51e5</tstamps>
+      <tstamps>8cbe324e-23a2-49ff-8d16-37f927b67627</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -210,7 +210,7 @@
       <property name="ki_keywords" value="connector"/>
       <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>86eea112-b082-4878-bdbd-6a8d770c679b</tstamps>
+      <tstamps>9662a1c5-7f39-4c44-a2c8-ab98f2768178</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -234,7 +234,7 @@
       <property name="ki_keywords" value="BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF"/>
       <property name="ki_fp_filters" value="*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>0b8b6183-771b-4fae-ad8b-f39cf481bf8a</tstamps>
+      <tstamps>a5d6d927-03fb-4942-b50f-caff88730656</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -258,7 +258,7 @@
       <property name="ki_keywords" value="connector"/>
       <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>81176e9a-8abb-4983-894a-5ac19f82152a</tstamps>
+      <tstamps>21581aaa-1672-48e9-8684-48753ff8ae3b</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -284,7 +284,7 @@
       <property name="ki_keywords" value="connector"/>
       <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>88a54dcc-ca04-42f1-80ec-97c3398fba33</tstamps>
+      <tstamps>d432a4ad-f381-450a-8c3c-323e00f993a8</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -308,7 +308,7 @@
       <property name="ki_keywords" value="connector"/>
       <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>1af6c113-d03a-4b3c-9b74-6526bcc8572c</tstamps>
+      <tstamps>ea63f98e-ca1a-4485-895b-b5755ce4f8fb</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -334,7 +334,7 @@
       <property name="ki_keywords" value="inductor choke coil reactor magnetic"/>
       <property name="ki_fp_filters" value="Choke_* *Coil* Inductor_* L_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>c6be9279-8068-43cc-97ff-498f06c054de</tstamps>
+      <tstamps>35547fc8-bbd9-4ee1-8712-39ea5a741524</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -359,7 +359,7 @@
       <property name="Sheetfile" value="wherewatch-carrier.kicad_sch"/>
       <property name="ki_keywords" value="transistor NMOS N-MOS N-MOSFET"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>d57f3123-8329-4c64-95b7-f61bfbb04a6f</tstamps>
+      <tstamps>9cf6ef86-fb52-4788-bfd7-a9470ee4d96f</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -384,7 +384,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>ad744508-cb58-4907-9f44-f354581d4d7b</tstamps>
+      <tstamps>c42bb613-828a-4ae4-a5f8-a6a1e6487e6f</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -408,7 +408,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>dea78547-a5b0-483b-b4b5-6c83de9a8e59</tstamps>
+      <tstamps>a4f56540-b243-47c9-b2b6-3f12ec0645af</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -432,7 +432,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>360d527e-f4b5-4f94-a409-5f1ec1c4be42</tstamps>
+      <tstamps>6145e217-993a-4d12-bdc6-5c465d18c41b</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -456,7 +456,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>a41421d3-7499-417c-9030-6dffcaef87d5</tstamps>
+      <tstamps>c4fd5e91-00e9-46b2-8850-8d23840ec343</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -480,7 +480,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>3f6ee036-9958-4e00-8b5f-d72fd8e7db95</tstamps>
+      <tstamps>ebfa9336-40e8-43c7-9c66-29351798c43c</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -504,7 +504,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>d3c4dc24-2500-4e39-baf8-4c87b738b6dc</tstamps>
+      <tstamps>52eddcbe-0969-4ecc-a341-09181a2cda01</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -528,7 +528,7 @@
       <property name="ki_keywords" value="R res resistor"/>
       <property name="ki_fp_filters" value="R_*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>94f977c1-3c76-4448-bb71-f9da0a61de91</tstamps>
+      <tstamps>d4b794eb-e380-4a68-8259-a31794776281</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -553,7 +553,7 @@
       <property name="Sheetfile" value="wherewatch-carrier.kicad_sch"/>
       <property name="ki_keywords" value="switch single-pole double-throw spdt ON-ON"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>a29210cd-0174-429a-ae71-1311f00791f3</tstamps>
+      <tstamps>6d31d19f-b080-447b-bdf9-ba1672b2fa4c</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -579,7 +579,7 @@
       <property name="Sheetfile" value="wherewatch-carrier.kicad_sch"/>
       <property name="ki_keywords" value="switch normally-open pushbutton push-button"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>7b69c105-6e42-44b9-9c1d-1a4ae01ca181</tstamps>
+      <tstamps>f2311e56-fa66-4ec8-8d06-2ccc15ead7e6</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -603,7 +603,7 @@
       <property name="Sheetname" value="wherewatch-carrier"/>
       <property name="Sheetfile" value="wherewatch-carrier.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>de2caeec-0f90-439d-987e-1eec238f5781</tstamps>
+      <tstamps>76a578e7-5d90-41dc-9f3b-fa219a5a91fa</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -652,7 +652,7 @@
       <property name="ki_keywords" value="Accelerometer Gyroscope MEMS"/>
       <property name="ki_fp_filters" value="LGA*3x2.5mm*P0.5mm*LayoutBorder3x4y*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>37b76f0b-3d0f-4187-a36c-68ef710e0980</tstamps>
+      <tstamps>596d5ed6-67cb-4610-895f-da78442b8a03</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -688,7 +688,7 @@
       <property name="Sheetname" value="wherewatch-carrier"/>
       <property name="Sheetfile" value="wherewatch-carrier.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>3212203e-5533-4792-8f7a-0460e92d8030</tstamps>
+      <tstamps>eb0146d5-3423-4967-9de6-0a79ad42f140</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -730,7 +730,7 @@
       <property name="ki_keywords" value="pcm tdm i2s left-justified amplifier audio dac"/>
       <property name="ki_fp_filters" value="TQFN*3x3mm*P0.5mm*EP1.23x1.23mm*"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>7ede189d-7117-447e-a21a-629b3781bd36</tstamps>
+      <tstamps>3dd4cbe7-7a7b-4cc4-b37b-7fa2bc2d4352</tstamps>
       <units>
         <unit name="A">
           <pins>
@@ -1115,7 +1115,6 @@
       <node ref="U2" pin="8" pinfunction="VDD_8" pintype="power_in"/>
       <node ref="U3" pin="6" pinfunction="VBAT_6" pintype="passive"/>
       <node ref="U3" pin="8" pinfunction="VCC_8" pintype="power_in"/>
-      <node ref="U4" pin="4" pinfunction="~{SD_MODE}_4" pintype="input"/>
     </net>
     <net code="2" name="BAT_RAW" class="Default">
       <node ref="J1" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
@@ -1210,6 +1209,7 @@
       <node ref="R6" pin="1" pintype="passive"/>
       <node ref="SW1" pin="1" pinfunction="A_1" pintype="passive"/>
       <node ref="U1" pin="23" pinfunction="VBAT_23" pintype="passive"/>
+      <node ref="U4" pin="4" pinfunction="~{SD_MODE}_4" pintype="input"/>
       <node ref="U4" pin="7" pinfunction="VDD_7" pintype="power_in"/>
       <node ref="U4" pin="8" pinfunction="VDD_8" pintype="passive"/>
     </net>

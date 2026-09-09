@@ -69,8 +69,11 @@ Room record: BOM v0 document `15fa6c35-3bc8-4eea-80b3-0ca6ff8ca643`, ideas line 
 - [ ] pin map above == BUILD.md == `gen_schematic.py` nets (second agent)
 - [ ] footprint pad numbers for ATGM336H-5N31 and MSK-12C02 checked against the datasheets (converted from LCSC records; MSK-12C02: is pad 2 the common?)
 - [ ] I2C addresses: LSM6DS3TR-C 0x6A, OLED 0x3C (no clash)
+- [x] MAX98357A logic levels on a 4.2 V rail: VIH 1.3 V / VIL 0.6 V absolute (datasheet), 3.3 V I2S lines OK; SD_MODE = VDD selects the left word (firmware: mono on left)
+- [x] ATGM336H active-antenna circuit needs no external DC block: the module provides antenna supply, detection and short protection internally (manual §2.7.1); only the 47 nH from VCC_RF
 - [ ] I2S pins D8–D10 accepted (no microSD), decision 6
 - [ ] GNSS ON/OFF gating accepted or MOSFET switch restored, decision 5
+- [ ] ATGM336H nRESET left floating: manual says 不用时悬空 (leave floating when unused) — confirmed
 - [ ] bench-proof on jumper wires done (ASSEMBLY.md)
 
 ## Review log

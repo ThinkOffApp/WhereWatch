@@ -159,7 +159,7 @@ part('J4', 'Connector_Generic', 'Conn_01x02', 'vibration motor', fp='Connector_J
 # --- speaker: MAX98357A I2S class-D, 4 ohm speaker ---------------------------
 part('U4', 'Audio', 'MAX98357A', 'MAX98357A', at=(150, 175), nets={
     '1': 'I2S_DIN', '14': 'I2S_LRCLK', '16': 'I2S_BCLK',
-    '4': '+3V3',          # SD_MODE high = left channel (mono)
+    '4': 'VBAT',          # SD_MODE = VDD per the datasheet figure -> left channel; VIH is 1.3 V absolute, so 3.3 V I2S lines are fine on the cell rail
     '7': 'VBAT', '8': 'VBAT',   # review P0 (claudeMB/codexmb): +5V is USB-only; the cell rail keeps audio peaks off the 3V3 LDO
     '3': 'GND', '11': 'GND', '15': 'GND', '17': 'GND',
     '9': 'SPK_P', '10': 'SPK_N',
