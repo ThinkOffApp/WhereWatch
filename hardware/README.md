@@ -16,8 +16,7 @@
 | D5 | GPIO6 | I2C SCL: IMU + OLED |
 | D6 | GPIO43 | UART TX → GNSS RX |
 | D7 | GPIO44 | UART RX ← GNSS TX |
-| D8 D9 D10 | GPIO7 8 9 | reserved (Sense board SD SPI), not used on the carrier |
-| I2S BCLK / LRCLK / DIN | to be assigned from the free GPIOs the XIAO exposes on its bottom pads (GPIO… tbd) | speaker amp |
+| D8 D9 D10 | GPIO7 8 9 | **I2S BCLK / LRCLK / DIN to the speaker amp** (decision 5 below): the XIAO ESP32S3's bottom pads carry only JTAG (used by the Sense board's mic and camera), USB, EN and the battery, so these three header pins are the only free GPIOs, and using them means **no microSD card in the pendant** |
 | 3V3, GND, 5V, B+, B− | — | rails; battery via the XIAO's B+/B− pads |
 
 ## BOM v0 (JLCPCB part numbers verified 2026-09-09)
@@ -42,6 +41,7 @@
 2. Speaker: size and placement (15 mm 4 Ω candidate).
 3. OLED on the carrier or on the case lid with a 4-wire lead.
 4. Outline: teardrop from `cad/pendant.scad`, 1.0 mm board.
+5. **Speaker vs microSD:** the I2S amp needs three GPIOs and the only free ones are D8–D10, which the Sense board's SD slot also uses. Proposal: no SD in the pendant (the base station stores everything), amp on D8–D10. Alternative: drop the speaker (the pendant vibrates and shows text; the base station speaks).
 
 ## Verification before any order
 Bench-prove the same circuit with the modules on jumper wires (ASSEMBLY.md) → KiCad ERC and DRC clean → JLCPCB DFM check on upload → second-agent review of the schematic against this pin map → first order 5 boards.
