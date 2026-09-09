@@ -1,0 +1,7 @@
+{
+  "meta": {"filename": "wherewatch-carrier.kicad_pro", "version": 3},
+  "board": {"design_settings": {}},
+  "schematic": {"drawing": {}},
+  "libraries": {"pinned_footprint_libs": [], "pinned_symbol_libs": []},
+  "sheets": [["7b0b4b2e-2c0d-4f5e-9a6a-000000000001", "Root"]]
+}
