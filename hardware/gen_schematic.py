@@ -113,17 +113,19 @@ part('U1', 'Seeed_XIAO', 'XIAO-ESP32-S3-SMD', 'XIAO ESP32S3 Sense', fp='Seeed_XI
     '18': 'GND',
     '23': 'VBAT',        # battery pad (B+)
     '24': 'GND',         # battery pad (B-)
-}, nc=('14', '15', '16', '17', '19', '20', '21', '22', '25'), extra_props={'LCSC': 'C9900154951'})   # VBUS unused on the carrier after review P0
+    '14': 'VBUS',        # USB present -> Q2 -> Q1 on, so the cell charges with the switch in either position
+}, nc=('15', '16', '17', '19', '20', '21', '22', '25'), extra_props={'LCSC': 'C9900154951'})
 
 # --- motion: LSM6DS3TR-C on I2C, address 0x6A (SA0 low) ---------------------
 part('U2', 'Sensor_Motion', 'LSM6DS3', 'LSM6DS3TR-C', fp='Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y', at=(150, 40), nets={
     '1': 'GND',      # SDO/SA0 -> address 0x6A
+    '2': 'GND', '3': 'GND',   # SDx/SCx: ST datasheet table 2, mode 1 requires VDDIO or GND (codexmb second pass)
     '5': '+3V3',     # VDDIO
     '6': 'GND', '7': 'GND',
     '8': '+3V3',     # VDD
     '12': '+3V3',    # CS high = I2C mode
     '13': 'SCL', '14': 'SDA',
-}, nc=('2', '3', '4', '9', '10', '11'), extra_props={'LCSC': 'C967633'})   # INT1 unused in v0: no free XIAO pin (see README)
+}, nc=('4', '9', '10', '11'), extra_props={'LCSC': 'C967633'})   # INT1 unused in v0: no free XIAO pin (see README)
 
 # --- GNSS: ATGM336H-5N31 (18 pads, user manual §2.4). Power gating uses the
 # module's own ON/OFF pin (5, active-low shutdown) from D2 instead of an external
@@ -173,9 +175,20 @@ part('J6', 'Connector_Generic', 'Conn_01x04', 'OLED 0.42in I2C', fp='Connector_P
 part('R4', 'Device', 'R', '4.7k', fp='Resistor_SMD:R_0402_1005Metric', at=(120, 30), nets={'1': '+3V3', '2': 'SDA'})
 part('R5', 'Device', 'R', '4.7k', fp='Resistor_SMD:R_0402_1005Metric', at=(130, 30), nets={'1': '+3V3', '2': 'SCL'})
 
-# --- battery, switch, sense divider, button ----------------------------------
+# --- battery, power switch, sense divider, button -----------------------------
+# codexmb second pass: MSK-12C02 is rated 50 mA, so it cannot sit in the battery
+# path (load peaks ~1 A, charge current too). Topology: the cell drives a P-MOSFET
+# high-side switch (Q1, 4 A) whose gate is pulled up to the cell (off) and pulled
+# low either by the slide switch (user "on") or by Q2 when USB is present, so
+# charging works with the switch in either position and "off" without USB is
+# zero drain (only Q1 leakage). The switch carries microamps.
 part('J1', 'Connector_Generic', 'Conn_01x02', 'LiPo JST PH', fp='Connector_JST:JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal', at=(20, 120), nets={'1': 'BAT_RAW', '2': 'GND'}, extra_props={'LCSC': 'C173752'})
-part('SW1', 'Switch', 'SW_SPDT', 'MSK-12C02', fp='WhereWatch:MSK-12C02', at=(20, 100), nets={'2': 'BAT_RAW', '1': 'VBAT'}, nc=('3',), extra_props={'LCSC': 'C431540'})
+part('Q1', 'Transistor_FET', 'AO3401A', 'AO3401A', at=(40, 105), nets={'1': 'SW_G', '2': 'BAT_RAW', '3': 'VBAT'}, extra_props={'LCSC': 'C15127'})   # G, S, D
+part('R1', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(30, 95), nets={'1': 'BAT_RAW', '2': 'SW_G'})   # gate up = off
+part('SW1', 'Switch', 'SW_SPDT', 'MSK-12C02', fp='WhereWatch:MSK-12C02', at=(20, 85), nets={'2': 'GND', '1': 'SW_G'}, nc=('3',), extra_props={'LCSC': 'C431540'})   # common to GND; "on" throw grounds the gate
+part('Q2', 'Transistor_FET', '2N7002', '2N7002', at=(55, 90), nets={'1': 'VBUS_DET', '2': 'GND', '3': 'SW_G'}, extra_props={'LCSC': 'C8545'})   # USB present -> gate low -> cell connected for charging
+part('R2', 'Device', 'R', '10k', fp='Resistor_SMD:R_0402_1005Metric', at=(65, 75), nets={'1': 'VBUS', '2': 'VBUS_DET'})
+part('R10', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(65, 100), nets={'1': 'VBUS_DET', '2': 'GND'})
 part('R6', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(35, 145), nets={'1': 'VBAT', '2': 'VBAT_SENSE'})
 part('R7', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(35, 160), nets={'1': 'VBAT_SENSE', '2': 'GND'})
 part('C4', 'Device', 'C', '100n', fp='Capacitor_SMD:C_0402_1005Metric', at=(48, 160), nets={'1': 'VBAT_SENSE', '2': 'GND'})
@@ -191,6 +204,7 @@ POWER = [  # (ref, lib, sym, net, at)
     ('#PWR02', 'power', '+3V3', '+3V3', (60, 225)),
     ('#FLG01', 'power', 'PWR_FLAG', '+3V3', (60, 230)),
     ('#FLG03', 'power', 'PWR_FLAG', 'VBAT', (120, 230)),
+    ('#FLG05', 'power', 'PWR_FLAG', 'BAT_RAW', (150, 230)),
     ('#FLG04', 'power', 'PWR_FLAG', 'GND', (30, 235)),
 ]
 

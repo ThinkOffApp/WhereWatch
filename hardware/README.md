@@ -1,4 +1,4 @@
-# WhereWatch carrier PCB (v0.2 schematic after review, ERC clean; layout pending)
+# WhereWatch carrier PCB (v0.3 schematic after two review passes, ERC clean; layout pending)
 
 **Goal (petrus, 2026-09-09):** the pendant electronics on one board, assembled by JLCPCB, so no soldering is needed at home. Mic, speaker, 0.42" screen, 5 MP camera, GPS, motion, vibration, on an ESP32.
 
@@ -17,7 +17,7 @@
 | D6 | GPIO43 | UART TX → GNSS RX |
 | D7 | GPIO44 | UART RX ← GNSS TX |
 | D8 D9 D10 | GPIO7 8 9 | **I2S BCLK / LRCLK / DIN to the speaker amp** (decision 5 below): the XIAO ESP32S3's bottom pads carry only JTAG (used by the Sense board's mic and camera), USB, EN and the battery, so these three header pins are the only free GPIOs, and using them means **no microSD card in the pendant** |
-| 3V3, GND, 5V, B+, B− | — | rails; battery via the XIAO's B+/B− pads |
+| 3V3, GND, VBUS, B+, B− | — | rails; the cell reaches B+ through Q1; VBUS (USB present) only senses, via R2/R10 into Q2 |
 
 ## BOM v0 (JLCPCB part numbers verified 2026-09-09)
 
@@ -26,19 +26,19 @@
 | 1 | brain | Seeed XIAO ESP32S3 | C9900154951 | extended |
 | 2 | motion | LSM6DS3TR-C, LGA-14 | C967633 | extended |
 | 3 | GNSS | ATGM336H-5N31 | C90770 | extended |
-| 4 | (dropped in v0.1: the ATGM336H has its own ON/OFF pin, see decision 5) | | | |
-| 5 | vibration driver | 2N7002 N-MOSFET | C8545 | basic |
+| 4 | battery load switch | AO3401A P-MOSFET (Q1, 4 A) between the cell and the XIAO B+; gate 100 k up to the cell (off), pulled low by SW1 ("on") or by Q2 when USB is present | C15127 | basic |
+| 5 | drivers (x2) | 2N7002 N-MOSFET: Q2 USB-present → Q1 on (charging works with the switch in either position); Q3 vibration motor | C8545 | basic |
 | 6 | flyback diode | 1N4148W | C81598 | basic |
 | 7 | speaker amp | MAX98357A, TQFN-16, **VDD on VBAT after the switch** (review P0: +5V is USB-only) | C910544 | extended |
 | 8 | screen | 0.42" 72x40 I2C OLED module | — | hand-fitted 4-pin header |
 | 9, 12 | battery + speaker connectors | JST PH 2-pin S2B-PH-K-S | C173752 | extended |
-| 10 | power switch | MSK-12C02 | C431540 | extended |
+| 10 | power switch | MSK-12C02, **as a gate control only** (rated 50 mA, codexmb second pass): common to GND, "on" throw grounds Q1's gate; off without USB = zero drain | C431540 | extended |
 | 11 | button | TS-1187A-B-A-B | C318884 | basic |
 | 13 | passives | 0402/0603 R, C | basic | basic |
 | 14 | GNSS antenna connector | Hirose U.FL-R-SMT-1 (or equivalent) | tbd at review | extended |
 | 15 | antenna bias | 47 nH 0402 inductor, VCC_RF → antenna line (ATGM336H manual, active-antenna circuit) | basic | basic |
 | 16 | antenna | small **active** ceramic GNSS patch with u.FL, 3.3 V (choose at review; the passive patch in the parts box stays with the bench breakout) | tbd | — |
-| 17 | pulldowns | 100 k on Q3 gate (no motor twitch at boot) and 100 k on GNSS ON/OFF (GNSS off through reset) | basic | basic |
+| 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 100 k Q1 gate pull-up, 10 k + 100 k on the VBUS sense | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
 1. GNSS antenna: **decided v0.2, review it:** active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
@@ -78,4 +78,5 @@ Room record: BOM v0 document `15fa6c35-3bc8-4eea-80b3-0ca6ff8ca643`, ideas line 
 
 ## Review log
 - 2026-09-09 19:06Z claudeMB (netlist read): P1 amp on USB-only +5V → **fixed** (VBAT); P2 Q3 gate floats at boot → **fixed** (R8 100 k); docs: README's "source of truth" wording vs BUILD.md's face-board table → wording fixed here, BUILD.md relabel awaits Petrus's OLED decision (bare 0.42" module on J6, purple board out).
+- 2026-09-09 19:16Z codexmb (second pass): MSK-12C02 is rated 12 V / 50 mA and sat in the battery path → **fixed v0.3**: it is a gate control for a 4 A P-MOSFET load switch, with a USB-present override so charging never passes through the switch; LSM6DS3 SDx/SCx must be VDDIO or GND in mode 1 → **fixed** (GND). MAX98357A VIH 1.3 V confirmed by codexmb from ADI too.
 - 2026-09-09 19:07Z codexmb (independent): P0 same amp rail → fixed; P0 antenna path undocumented → **fixed** with the manual's active-antenna bias (L1 47 nH from VCC_RF); P1 ON/OFF pulldown → **fixed** (R9); P1 BUILD.md D8–D10 statement → docs, with the relabel; P1 MSK-12C02 pad 2 = common → still **[verify]** against the manufacturer drawing before layout; P1 GNSS shutdown current → bench measurement, on the checklist. Note from codexmb worth keeping: ERC cannot catch a rail that exists only on USB, because PWR_FLAG declares it powered; power-path review is a human/agent read of the netlist.
