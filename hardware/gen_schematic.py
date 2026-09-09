@@ -110,11 +110,10 @@ part('U1', 'Seeed_XIAO', 'XIAO-ESP32-S3-SMD', 'XIAO ESP32S3 Sense', fp='Seeed_XI
     '11': 'I2S_DIN',     # D10 / GPIO9
     '12': '+3V3',        # 3V3_OUT
     '13': 'GND',
-    '14': '+5V',         # VBUS
     '18': 'GND',
     '23': 'VBAT',        # battery pad (B+)
     '24': 'GND',         # battery pad (B-)
-}, nc=('15', '16', '17', '19', '20', '21', '22', '25'), extra_props={'LCSC': 'C9900154951'})
+}, nc=('14', '15', '16', '17', '19', '20', '21', '22', '25'), extra_props={'LCSC': 'C9900154951'})   # VBUS unused on the carrier after review P0
 
 # --- motion: LSM6DS3TR-C on I2C, address 0x6A (SA0 low) ---------------------
 part('U2', 'Sensor_Motion', 'LSM6DS3', 'LSM6DS3TR-C', fp='Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y', at=(150, 40), nets={
@@ -139,13 +138,21 @@ part('U3', 'WhereWatch', 'ATGM336H', 'ATGM336H-5N31', fp='WhereWatch:ATGM336H-5N
     '6': '+3V3',         # VBAT backup: RTC + ephemeris for hot start
     '8': '+3V3',         # VCC 2.7-3.6 V, 100 mA peak
     '11': 'GNSS_RF',
-}, nc=('4', '7', '9', '13', '14', '15', '16', '17', '18'), extra_props={'LCSC': 'C90770'})
+    '14': 'VCC_RF',      # 3.3 V antenna feed (manual §2.7, active-antenna circuit): bias-T via L1 onto the antenna line
+}, nc=('4', '7', '9', '13', '15', '16', '17', '18'), extra_props={'LCSC': 'C90770'})
+# Review P0 (codexmb): a passive patch straight into RF_IN is not a documented path. The manual documents two:
+# active antenna = VCC_RF -> 47 nH -> antenna line; passive = an AT2659 LNA stage in front of RF_IN. v0.2 takes the
+# ACTIVE path (one part, documented in the manual we have); the antenna becomes a small active ceramic patch on u.FL.
+part('L1', 'Device', 'L', '47nH', fp='Inductor_SMD:L_0402_1005Metric', at=(175, 125), nets={'1': 'VCC_RF', '2': 'GNSS_RF'})
+# Review P1 (codexmb): ON/OFF must not float during reset -> GNSS held off until D2 drives it high.
+part('R9', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(130, 125), nets={'1': 'GNSS_EN', '2': 'GND'})
 part('C1', 'Device', 'C', '10u', fp='Capacitor_SMD:C_0603_1608Metric', at=(130, 150), nets={'1': '+3V3', '2': 'GND'})
 part('J3', 'Connector', 'Conn_Coaxial', 'u.FL GNSS antenna', fp='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', at=(190, 110), nets={'1': 'GNSS_RF', '2': 'GND'})
 
 # --- vibration motor: low side N-MOSFET + flyback diode ----------------------
 part('Q3', 'Transistor_FET', '2N7002', '2N7002', at=(80, 200), nets={'1': 'VIB_IN_R', '2': 'GND', '3': 'VIB_N'}, extra_props={'LCSC': 'C8545'})
 part('R3', 'Device', 'R', '1k', fp='Resistor_SMD:R_0402_1005Metric', at=(65, 200), nets={'1': 'VIB_IN', '2': 'VIB_IN_R'})
+part('R8', 'Device', 'R', '100k', fp='Resistor_SMD:R_0402_1005Metric', at=(65, 215), nets={'1': 'VIB_IN_R', '2': 'GND'})   # review P2: gate held low through reset, no motor twitch at boot
 part('D1', 'Diode', '1N4148W', '1N4148W', at=(110, 195), nets={'1': '+3V3', '2': 'VIB_N'}, extra_props={'LCSC': 'C81598'})   # K to +3V3, A to motor low side
 part('J4', 'Connector_Generic', 'Conn_01x02', 'vibration motor', fp='Connector_JST:JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal', at=(130, 200), nets={'1': '+3V3', '2': 'VIB_N'})
 
@@ -153,12 +160,12 @@ part('J4', 'Connector_Generic', 'Conn_01x02', 'vibration motor', fp='Connector_J
 part('U4', 'Audio', 'MAX98357A', 'MAX98357A', at=(150, 175), nets={
     '1': 'I2S_DIN', '14': 'I2S_LRCLK', '16': 'I2S_BCLK',
     '4': '+3V3',          # SD_MODE high = left channel (mono)
-    '7': '+5V', '8': '+5V',
+    '7': 'VBAT', '8': 'VBAT',   # review P0 (claudeMB/codexmb): +5V is USB-only; the cell rail keeps audio peaks off the 3V3 LDO
     '3': 'GND', '11': 'GND', '15': 'GND', '17': 'GND',
     '9': 'SPK_P', '10': 'SPK_N',
 }, nc=('2', '5', '6', '12', '13'), extra_props={'LCSC': 'C910544'})   # GAIN_SLOT open = 9 dB
-part('C2', 'Device', 'C', '10u', fp='Capacitor_SMD:C_0603_1608Metric', at=(175, 160), nets={'1': '+5V', '2': 'GND'})
-part('C3', 'Device', 'C', '100n', fp='Capacitor_SMD:C_0402_1005Metric', at=(185, 160), nets={'1': '+5V', '2': 'GND'})
+part('C2', 'Device', 'C', '10u', fp='Capacitor_SMD:C_0603_1608Metric', at=(175, 160), nets={'1': 'VBAT', '2': 'GND'})
+part('C3', 'Device', 'C', '100n', fp='Capacitor_SMD:C_0402_1005Metric', at=(185, 160), nets={'1': 'VBAT', '2': 'GND'})
 part('J5', 'Connector_Generic', 'Conn_01x02', 'speaker 4R', fp='Connector_JST:JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal', at=(190, 178), nets={'1': 'SPK_P', '2': 'SPK_N'}, extra_props={'LCSC': 'C173752'})
 
 # --- screen: 0.42" I2C OLED module on a 4-pin header --------------------------
@@ -182,9 +189,7 @@ part('C6', 'Device', 'C', '10u', fp='Capacitor_SMD:C_0603_1608Metric', at=(185, 
 POWER = [  # (ref, lib, sym, net, at)
     ('#PWR01', 'power', 'GND', 'GND', (30, 230)),
     ('#PWR02', 'power', '+3V3', '+3V3', (60, 225)),
-    ('#PWR03', 'power', '+5V', '+5V', (90, 225)),
     ('#FLG01', 'power', 'PWR_FLAG', '+3V3', (60, 230)),
-    ('#FLG02', 'power', 'PWR_FLAG', '+5V', (90, 230)),
     ('#FLG03', 'power', 'PWR_FLAG', 'VBAT', (120, 230)),
     ('#FLG04', 'power', 'PWR_FLAG', 'GND', (30, 235)),
 ]

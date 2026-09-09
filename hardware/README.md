@@ -1,16 +1,16 @@
-# WhereWatch carrier PCB (v0 schematic, ERC clean; layout pending)
+# WhereWatch carrier PCB (v0.2 schematic after review, ERC clean; layout pending)
 
 **Goal (petrus, 2026-09-09):** the pendant electronics on one board, assembled by JLCPCB, so no soldering is needed at home. Mic, speaker, 0.42" screen, 5 MP camera, GPS, motion, vibration, on an ESP32.
 
 **Architecture:** a carrier board for the **Seeed XIAO ESP32S3 Sense**. JLCPCB places the XIAO module itself (their part C9900154951); the Sense expansion board with the OV5640 camera, the PDM microphone and the microSD slot clips on top as today. Everything else sits on the carrier as bare parts JLC also solders.
 
-## Pin map (from BUILD.md, the source of truth)
+## Pin map (the carrier map; BUILD.md on main also carries the bench-build map with the purple face board, to be relabelled)
 
 | XIAO pin | GPIO | carrier use |
 |---|---|---|
 | D0 | GPIO1 | battery divider midpoint (ADC), 100 k + 100 k + 100 nF |
 | D1 | GPIO2 | button to GND (internal pull-up) |
-| D2 | GPIO3 | GNSS power enable (drives the load switch) |
+| D2 | GPIO3 | GNSS ON/OFF (module pin 5, active-low shutdown), 100 k pulldown |
 | D3 | GPIO4 | vibration motor driver IN |
 | D4 | GPIO5 | I2C SDA: IMU + OLED |
 | D5 | GPIO6 | I2C SCL: IMU + OLED |
@@ -29,16 +29,19 @@
 | 4 | (dropped in v0.1: the ATGM336H has its own ON/OFF pin, see decision 5) | | | |
 | 5 | vibration driver | 2N7002 N-MOSFET | C8545 | basic |
 | 6 | flyback diode | 1N4148W | C81598 | basic |
-| 7 | speaker amp | MAX98357A, TQFN-16 | C910544 | extended |
+| 7 | speaker amp | MAX98357A, TQFN-16, **VDD on VBAT after the switch** (review P0: +5V is USB-only) | C910544 | extended |
 | 8 | screen | 0.42" 72x40 I2C OLED module | — | hand-fitted 4-pin header |
 | 9, 12 | battery + speaker connectors | JST PH 2-pin S2B-PH-K-S | C173752 | extended |
 | 10 | power switch | MSK-12C02 | C431540 | extended |
 | 11 | button | TS-1187A-B-A-B | C318884 | basic |
 | 13 | passives | 0402/0603 R, C | basic | basic |
 | 14 | GNSS antenna connector | Hirose U.FL-R-SMT-1 (or equivalent) | tbd at review | extended |
+| 15 | antenna bias | 47 nH 0402 inductor, VCC_RF → antenna line (ATGM336H manual, active-antenna circuit) | basic | basic |
+| 16 | antenna | small **active** ceramic GNSS patch with u.FL, 3.3 V (choose at review; the passive patch in the parts box stays with the bench breakout) | tbd | — |
+| 17 | pulldowns | 100 k on Q3 gate (no motor twitch at boot) and 100 k on GNSS ON/OFF (GNSS off through reset) | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
-1. GNSS antenna: u.FL + the ceramic patch from the parts box, or an on-board chip antenna.
+1. GNSS antenna: **decided v0.2, review it:** active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
 2. Speaker: size and placement (15 mm 4 Ω candidate).
 3. OLED on the carrier or on the case lid with a 4-wire lead.
 4. Outline: teardrop from `cad/pendant.scad`, 1.0 mm board.
@@ -69,3 +72,7 @@ Room record: BOM v0 document `15fa6c35-3bc8-4eea-80b3-0ca6ff8ca643`, ideas line 
 - [ ] I2S pins D8–D10 accepted (no microSD), decision 6
 - [ ] GNSS ON/OFF gating accepted or MOSFET switch restored, decision 5
 - [ ] bench-proof on jumper wires done (ASSEMBLY.md)
+
+## Review log
+- 2026-09-09 19:06Z claudeMB (netlist read): P1 amp on USB-only +5V → **fixed** (VBAT); P2 Q3 gate floats at boot → **fixed** (R8 100 k); docs: README's "source of truth" wording vs BUILD.md's face-board table → wording fixed here, BUILD.md relabel awaits Petrus's OLED decision (bare 0.42" module on J6, purple board out).
+- 2026-09-09 19:07Z codexmb (independent): P0 same amp rail → fixed; P0 antenna path undocumented → **fixed** with the manual's active-antenna bias (L1 47 nH from VCC_RF); P1 ON/OFF pulldown → **fixed** (R9); P1 BUILD.md D8–D10 statement → docs, with the relabel; P1 MSK-12C02 pad 2 = common → still **[verify]** against the manufacturer drawing before layout; P1 GNSS shutdown current → bench measurement, on the checklist. Note from codexmb worth keeping: ERC cannot catch a rail that exists only on USB, because PWR_FLAG declares it powered; power-path review is a human/agent read of the netlist.
