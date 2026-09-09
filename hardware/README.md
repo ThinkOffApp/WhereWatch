@@ -27,7 +27,7 @@
 | 2 | motion | LSM6DS3TR-C, LGA-14 | C967633 | extended |
 | 3 | GNSS | ATGM336H-5N31 | C90770 | extended |
 | 4 | battery load switch | AO3401A P-MOSFET (Q1, 4 A) between the cell and the XIAO B+; gate 100 k up to the cell (off), pulled low by SW1 ("on") or by Q2 when USB is present | C15127 | basic |
-| 5 | drivers (x2) | 2N7002 N-MOSFET: Q2 USB-present → Q1 on (charging works with the switch in either position); Q3 vibration motor | C8545 | basic |
+| 5 | drivers (x2) | Q2 2N7002 (USB-present → Q1 on) C8545; Q3 AO3400A for the motor, RDS(on) specified at 2.5 V, 5.8 A | C8545 / C20917 | basic |
 | 6 | flyback diode | 1N4148W | C81598 | basic |
 | 7 | speaker amp | MAX98357A, TQFN-16, **VDD on VBAT after the switch** (review P0: +5V is USB-only) | C910544 | extended |
 | 8 | screen | 0.42" 72x40 I2C OLED module | — | hand-fitted 4-pin header |
@@ -38,7 +38,7 @@
 | 14 | GNSS antenna connector | Hirose U.FL-R-SMT-1 (or equivalent) | tbd at review | extended |
 | 15 | antenna bias | 47 nH 0402 inductor, VCC_RF → antenna line (ATGM336H manual, active-antenna circuit) | basic | basic |
 | 16 | antenna | small **active** ceramic GNSS patch with u.FL, 3.3 V (choose at review; the passive patch in the parts box stays with the bench breakout) | tbd | — |
-| 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 100 k Q1 gate pull-up, 10 k + 100 k on the VBUS sense | basic | basic |
+| 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 1 M Q1 gate pull-up (4 µA on), 10 k + 100 k on the VBUS sense, 100 k on the wake line | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
 1. GNSS antenna: **decided v0.2, review it:** active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
@@ -78,5 +78,18 @@ Room record: BOM v0 document `15fa6c35-3bc8-4eea-80b3-0ca6ff8ca643`, ideas line 
 
 ## Review log
 - 2026-09-09 19:06Z claudeMB (netlist read): P1 amp on USB-only +5V → **fixed** (VBAT); P2 Q3 gate floats at boot → **fixed** (R8 100 k); docs: README's "source of truth" wording vs BUILD.md's face-board table → wording fixed here, BUILD.md relabel awaits Petrus's OLED decision (bare 0.42" module on J6, purple board out).
+- 2026-09-09 19:21Z codexmb full second report + claudeMB v0.3 read → **v0.3.1**: Q3 is AO3400A (RDS(on) specified at 2.5 V gate drive, 5.8 A; the 2N7002 was 115 mA and only specified at 5/10 V); IMU INT1 wired-OR onto the button line (BTN, D1) with an explicit 100 k pull-up, IMU set open-drain active-low in firmware, wake source read from WAKE_UP_SRC, so wrist-flick wake needs no extra XIAO pin; R1 1 M (4 µA while on); title block v0.3. AO3401A/AO3400A pin order 1 G, 2 S, 3 D confirmed in both the KiCad parents (TP0610T, Q_NMOS_GSD) and the AOS datasheets. Still open: no-cell USB behaviour (bench), motor stall current (needs the exact ERM part), PDF label overlap (cosmetic).
 - 2026-09-09 19:16Z codexmb (second pass): MSK-12C02 is rated 12 V / 50 mA and sat in the battery path → **fixed v0.3**: it is a gate control for a 4 A P-MOSFET load switch, with a USB-present override so charging never passes through the switch; LSM6DS3 SDx/SCx must be VDDIO or GND in mode 1 → **fixed** (GND). MAX98357A VIH 1.3 V confirmed by codexmb from ADI too.
 - 2026-09-09 19:07Z codexmb (independent): P0 same amp rail → fixed; P0 antenna path undocumented → **fixed** with the manual's active-antenna bias (L1 47 nH from VCC_RF); P1 ON/OFF pulldown → **fixed** (R9); P1 BUILD.md D8–D10 statement → docs, with the relabel; P1 MSK-12C02 pad 2 = common → still **[verify]** against the manufacturer drawing before layout; P1 GNSS shutdown current → bench measurement, on the checklist. Note from codexmb worth keeping: ERC cannot catch a rail that exists only on USB, because PWR_FLAG declares it powered; power-path review is a human/agent read of the netlist.
+
+## Power budget (quiescent, carrier only)
+
+| item | current | when |
+|---|---|---|
+| R1 gate pull-up (1 M from the cell) | ~4 µA | switch on |
+| R6/R7 battery divider (200 k) | ~20 µA | switch on |
+| R10 VBUS sense | 0 | no USB |
+| GNSS off (ON/OFF low) | backup only, ~10 µA (datasheet, not total shutdown; bench) | switch on |
+| everything | 0 (Q1 leakage) | switch off, no USB |
+
+No-cell behaviour: with USB but no cell, the XIAO runs from VBUS, and VBAT carries whatever the onboard charger puts out with no battery attached; the amp and divider see that. Bring-up without a cell is fine for the S3, audio only with a cell. Bench check before fabrication (codexmb).
