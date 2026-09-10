@@ -13,6 +13,14 @@
 #include <Adafruit_NeoPixel.h>
 #include <ESP_I2S.h>
 #include "esp_camera.h"
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#if __has_include("wifi_secrets.h")
+#include "wifi_secrets.h"
+#else
+#include "wifi_secrets.example.h"
+#endif
 
 // ---- matrix ----
 static const int DATA_PIN = D6;
@@ -113,15 +121,36 @@ static const uint8_t HEART[8] = {
   0b00000000,
 };
 
+// Ring index per heart pixel: 0 = outer edge ... 3 = core, drawn from the logo (pink, fuchsia, orange/yellow, lime, white centre)
+static const uint8_t HEART_RING[8][8] = {
+  {9,0,0,9,9,0,0,9},
+  {0,1,1,0,0,1,1,0},
+  {0,1,2,2,2,2,1,0},
+  {0,1,2,3,3,2,1,0},
+  {9,0,1,2,2,1,0,9},
+  {9,9,0,1,1,0,9,9},
+  {9,9,9,0,0,9,9,9},
+  {9,9,9,9,9,9,9,9},
+};
+static uint32_t heartBase = 0xFF77FF;   // settable over the API (outer ring); the inner rings follow the logo
+static uint32_t RING_COLORS[4] = {0xFF77FF, 0xFF00FF, 0xFFAA00, 0x99DD00};
+
+static uint32_t scaleColor(uint32_t c, float k) {
+  uint8_t r = ((c >> 16) & 0xFF) * k, g = ((c >> 8) & 0xFF) * k, b = (c & 0xFF) * k;
+  return px.Color(r, g, b);
+}
+
 static void showHeart(uint32_t now) {
-  // ThinkOff pink at rest (hue ~ 300 degrees), sliding toward fuchsia and yellow with loudness
-  uint16_t hue = 54000 - (uint16_t)(loudness * 22000.0f);
-  uint8_t val = 120 + (uint8_t)(loudPeak * 135.0f);
-  float pulse = 0.85f + 0.15f * sinf(now / 400.0f);
+  // the whole heart breathes; sound makes it beat harder and brighter, the colours stay the logo's
+  float pulse = 0.75f + 0.25f * sinf(now / 380.0f) + loudPeak * 0.35f;
+  if (pulse > 1.0f) pulse = 1.0f;
+  RING_COLORS[0] = heartBase;
   for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
-    bool on = HEART[y] & (0x80 >> x);
-    uint32_t c = on ? px.gamma32(px.ColorHSV(hue, 230, (uint8_t)(val * pulse))) : 0;
-    px.setPixelColor(idx(x, y), c);
+    uint8_t ring = HEART_RING[y][x];
+    uint32_t c = 0;
+    if (ring == 3 && ((x == 3 && y == 3) || (x == 4 && y == 3))) c = scaleColor(0xFFFFFF, pulse);   // white core
+    else if (ring < 4) c = scaleColor(RING_COLORS[ring], pulse);
+    px.setPixelColor(idx(x, y), px.gamma32(c));
   }
   px.show();
 }
@@ -135,6 +164,24 @@ static void showRainbow() {
   px.show();
   phase += 512;
 }
+
+// ---- web ----
+WebServer web(80);
+static bool wifiOk = false;
+static const char PAGE[] PROGMEM = R"HTML(<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>ThinkOff Matrix</title>
+<style>body{background:#0a0a0a;color:#eee;font-family:-apple-system,Helvetica,sans-serif;margin:0;padding:16px;text-align:center}
+h1{color:#ff77ff;font-size:22px}button{background:#222;color:#eee;border:2px solid #ff00ff;border-radius:12px;padding:14px 18px;margin:6px;font-size:18px}
+button.on{background:#ff00ff;color:#000}input[type=range]{width:80%}canvas{image-rendering:pixelated;width:240px;height:240px;border:1px solid #333;margin:12px}
+label{display:block;margin-top:14px;color:#b0b0b0}</style>
+<h1>ThinkOff Matrix</h1><div id=m><button onclick="set('mode?m=0')">rainbow</button><button onclick="set('mode?m=1')">heart</button><button onclick="set('mode?m=2')">camera</button></div>
+<label>brightness <span id=bv></span></label><input id=b type=range min=4 max=160 oninput="set('brightness?v='+this.value)">
+<label>heart colour</label><input id=c type=color value="#ff77ff" onchange="set('color?hex='+this.value.slice(1))">
+<label>serpentine wiring</label><button id=s onclick="set('serpentine?v='+(st.serpentine?0:1))">flip</button>
+<canvas id=cv width=8 height=8></canvas>
+<script>let st={};async function set(q){await fetch('/api/'+q,{method:'POST'});load()}
+async function load(){st=await (await fetch('/api/state')).json();document.querySelectorAll('#m button').forEach((b,i)=>b.className=i==st.mode?'on':'');b.value=st.brightness;bv.textContent=st.brightness;
+const p=await (await fetch('/api/pixels')).json();const x=cv.getContext('2d');p.forEach((h,i)=>{x.fillStyle='#'+h;x.fillRect(i%8,(i/8)|0,1,1)})}
+load();setInterval(async()=>{const p=await (await fetch('/api/pixels')).json();const x=cv.getContext('2d');p.forEach((h,i)=>{x.fillStyle='#'+h;x.fillRect(i%8,(i/8)|0,1,1)})},500)</script>)HTML";
 
 // ---- modes ----
 static int mode = 0;
@@ -150,6 +197,43 @@ static void indexTest() {                 // lights pixel 0..7 along the first r
   px.clear(); px.show();
 }
 
+static void sendState() {
+  char buf[200];
+  snprintf(buf, sizeof buf, "{\"mode\":%d,\"modeName\":\"%s\",\"brightness\":%d,\"serpentine\":%d,\"color\":\"%06X\",\"mic\":%d,\"cam\":%d}",
+           mode, MODE_NAME[mode], brightness, serpentine, (unsigned)heartBase, micOk, camOk);
+  web.send(200, "application/json", buf);
+}
+
+static void webSetup() {
+  web.on("/", []() { web.send_P(200, "text/html", PAGE); });
+  web.on("/api/state", HTTP_GET, sendState);
+  web.on("/api/mode", HTTP_POST, []() { int m = web.arg("m").toInt(); if (m >= 0 && m < 3) mode = m; announce(); sendState(); });
+  web.on("/api/brightness", HTTP_POST, []() { int v = web.arg("v").toInt(); if (v >= 1 && v <= 255) { brightness = v; px.setBrightness(brightness); } sendState(); });
+  web.on("/api/serpentine", HTTP_POST, []() { serpentine = web.arg("v").toInt() != 0; sendState(); });
+  web.on("/api/color", HTTP_POST, []() { String h = web.arg("hex"); if (h.length() == 6) heartBase = strtoul(h.c_str(), nullptr, 16); sendState(); });
+  web.on("/api/pixels", HTTP_GET, []() {
+    String out = "["; out.reserve(64 * 9 + 2);
+    for (int i = 0; i < N; i++) { uint32_t c = px.getPixelColor(i); char b[12]; snprintf(b, sizeof b, "%s\"%06X\"", i ? "," : "", (unsigned)(c & 0xFFFFFF)); out += b; }
+    out += "]"; web.send(200, "application/json", out);
+  });
+  web.begin();
+}
+
+static void wifiSetup() {
+  WiFi.mode(WIFI_STA); WiFi.setHostname("matrix");
+  const char *ssids[2] = {WIFI_SSID_1, WIFI_SSID_2}; const char *pws[2] = {WIFI_PASS_1, WIFI_PASS_2};
+  for (int i = 0; i < 2 && !wifiOk; i++) {
+    if (!ssids[i][0]) continue;
+    WiFi.begin(ssids[i], pws[i]);
+    for (int t = 0; t < 40 && WiFi.status() != WL_CONNECTED; t++) delay(250);
+    wifiOk = WiFi.status() == WL_CONNECTED;
+  }
+  if (!wifiOk) { WiFi.mode(WIFI_AP); WiFi.softAP("ThinkOff-Matrix"); }
+  MDNS.begin("matrix");
+  Serial.printf("wifi %s ip %s\n", wifiOk ? "joined" : "own network ThinkOff-Matrix", wifiOk ? WiFi.localIP().toString().c_str() : WiFi.softAPIP().toString().c_str());
+  webSetup();
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(BTN_PIN, INPUT_PULLUP);
@@ -158,10 +242,12 @@ void setup() {
   micOk = I2S.begin(I2S_MODE_PDM_RX, 16000, I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
   camOk = camInit();
   indexTest();
+  wifiSetup();
   announce();
 }
 
 void loop() {
+  web.handleClient();
   static uint32_t lastBtn = 0; static bool btnWas = true;
   bool btn = digitalRead(BTN_PIN);
   uint32_t now = millis();
