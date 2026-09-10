@@ -41,6 +41,16 @@ battery management: add a TP4056 USB-C charge/protection module.
 - USB-C soldering iron (travels well) for the XIAO battery pads — the one
   solder joint the build needs.
 - Lead-free solder if the kit lacks it.
+- Flux pen and desoldering braid: a bridge between two neighbouring pins
+  is a two-second fix with them and a lifted pad without (9 Sep, first
+  soldered wires bridged).
+- **Dupont jumper wire set** (female-female, male-female, male-male,
+  about 20 cm) and a **mini breadboard** (170 points): every module with
+  pins connects with no iron, and two parts that share the XIAO's I2C pins
+  get separate holes instead of twisted wire ends. Not in the parts box as
+  of 9 Sep; Partco or Uraltone in Helsinki over the counter.
+- Multimeter with a continuity beep, for checking neighbouring pins after
+  every joint.
 
 ## Open questions
 
