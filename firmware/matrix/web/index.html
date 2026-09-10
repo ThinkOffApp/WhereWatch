@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix</title>
+<style>
+  :root { color-scheme: dark; --pink: #ff2d95; --bg: #0b0b0f; --fg: #f2f2f5; --muted: #8a8a96; --card: #16161d; --line: #2a2a33; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.4 -apple-system, system-ui, sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: var(--pink); }
+  .sub { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; aspect-ratio: 1; margin: 0 auto 20px; max-width: 260px; background: #000; padding: 6px; border-radius: 12px; }
+  .grid i { display: block; aspect-ratio: 1; border-radius: 50%; background: #111; }
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  button { font: inherit; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+  button.on { background: var(--pink); border-color: var(--pink); color: #111; font-weight: 600; }
+  label { display: block; color: var(--muted); font-size: 13px; margin: 14px 0 6px; }
+  input[type=range] { width: 100%; }
+  input[type=color] { width: 100%; height: 44px; border: none; background: none; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .toggle input { width: 22px; height: 22px; }
+  .status { margin-top: 22px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Matrix</h1>
+  <p class="sub">8x8 on the XIAO. A double clap near the board also moves to the next mode.</p>
+
+  <div class="grid" id="grid" aria-label="live preview"></div>
+
+  <div class="modes">
+    <button data-mode="0">Rainbow</button>
+    <button data-mode="1">Heart</button>
+    <button data-mode="2">Camera</button>
+  </div>
+
+  <label for="color">Heart colour</label>
+  <input id="color" type="color" value="#ff2d95">
+
+  <label for="bright">Brightness <span id="bval">16</span> %</label>
+  <input id="bright" type="range" min="1" max="100" value="16">
+
+  <div class="toggle">
+    <span>Serpentine wiring (use if the camera picture zigzags)</span>
+    <input id="serp" type="checkbox">
+  </div>
+
+  <div class="status" id="status">connecting to the board…</div>
+</main>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const grid = $('#grid'), status = $('#status');
+  for (let i = 0; i < 64; i++) grid.appendChild(document.createElement('i'));
+  const cells = grid.querySelectorAll('i');
+
+  const api = (path, params) => fetch('/api/' + path + (params ? '?' + new URLSearchParams(params) : ''), { method: params ? 'POST' : 'GET' })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status));
+
+  const pct = b => Math.max(1, Math.round(b * 100 / 255));
+  const raw = p => Math.max(1, Math.round(p * 255 / 100));
+
+  const render = s => {
+    document.querySelectorAll('button[data-mode]').forEach(b => b.classList.toggle('on', Number(b.dataset.mode) === s.mode));
+    if (s.color) $('#color').value = '#' + s.color.toLowerCase();
+    if (s.brightness != null && document.activeElement !== $('#bright')) { $('#bright').value = pct(s.brightness); $('#bval').textContent = pct(s.brightness); }
+    $('#serp').checked = !!s.serpentine;
+    status.textContent = 'mode ' + s.modeName + ', brightness ' + pct(s.brightness) + ' %, mic ' + (s.mic ? 'ok' : 'off') + ', camera ' + (s.cam ? 'ok' : 'off');
+  };
+
+  const refresh = () => api('state').then(render).catch(e => { status.textContent = 'no answer from the board (' + e + ')'; });
+  const preview = () => api('pixels').then(px => px.forEach((c, i) => { cells[i].style.background = '#' + c; })).catch(() => {});
+
+  document.querySelectorAll('button[data-mode]').forEach(b =>
+    b.addEventListener('click', () => api('mode', { m: b.dataset.mode }).then(render).catch(refresh)));
+  $('#color').addEventListener('change', e => api('color', { hex: e.target.value.slice(1).toUpperCase() }).then(render).catch(refresh));
+  $('#serp').addEventListener('change', e => api('serpentine', { v: e.target.checked ? 1 : 0 }).then(render).catch(refresh));
+
+  let t;
+  $('#bright').addEventListener('input', e => {
+    $('#bval').textContent = e.target.value;
+    clearTimeout(t);
+    t = setTimeout(() => api('brightness', { v: raw(e.target.value) }).then(render).catch(refresh), 150);
+  });
+
+  refresh(); preview();
+  setInterval(refresh, 5000);
+  setInterval(preview, 500);
+})();
+</script>
+</body>
+</html>
