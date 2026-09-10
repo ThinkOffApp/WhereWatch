@@ -8,6 +8,7 @@
 // Build:  arduino-cli compile --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
 // Upload: arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
 // Serial (115200): r / h / c switch modes, s toggles serpentine wiring, digits 1-9 set brightness.
+// No button needed: a DOUBLE CLAP (two sharp sounds 150-700 ms apart) also moves to the next mode.
 
 #include <Adafruit_NeoPixel.h>
 #include <ESP_I2S.h>
@@ -32,6 +33,10 @@ static bool micOk = false;
 static float loudness = 0.0f;            // 0..1, smoothed
 static float loudPeak = 0.0f;
 
+static uint32_t lastClap = 0;            // double-clap detector: two sharp peaks 150-700 ms apart
+static float prevLevel = 0.0f;
+static bool clapPending = false;
+
 static void micSample() {
   if (!micOk) return;
   long acc = 0; int n = 0;
@@ -46,6 +51,14 @@ static void micSample() {
   loudness = loudness * 0.7f + level * 0.3f;
   loudPeak = loudPeak * 0.92f;
   if (level > loudPeak) loudPeak = level;
+  // a clap: sudden jump from quiet to loud
+  uint32_t now = millis();
+  if (level > 0.55f && prevLevel < 0.25f && now - lastClap > 150) {
+    if (lastClap && now - lastClap < 700) { clapPending = true; lastClap = 0; }
+    else lastClap = now;
+  }
+  if (lastClap && now - lastClap > 700) lastClap = 0;   // single clap expired
+  prevLevel = level;
 }
 
 // ---- camera (pins from the esp32 core's CameraWebServer camera_pins.h, CAMERA_MODEL_XIAO_ESP32S3) ----
@@ -100,7 +113,6 @@ static const uint8_t HEART[8] = {
 };
 
 static void showHeart(uint32_t now) {
-  micSample();
   // ThinkOff pink at rest (hue ~ 300 degrees), sliding toward fuchsia and yellow with loudness
   uint16_t hue = 54000 - (uint16_t)(loudness * 22000.0f);
   uint8_t val = 120 + (uint8_t)(loudPeak * 135.0f);
@@ -154,6 +166,13 @@ void loop() {
   uint32_t now = millis();
   if (btnWas && !btn && now - lastBtn > 300) { mode = (mode + 1) % 3; lastBtn = now; announce(); }
   btnWas = btn;
+  micSample();
+  if (clapPending) {                       // double clap = next mode, with a short white blink as the acknowledgement
+    clapPending = false; mode = (mode + 1) % 3;
+    px.fill(px.Color(60, 60, 60)); px.show(); delay(80);
+    Serial.println("double clap");
+    announce();
+  }
   while (Serial.available()) {
     char ch = Serial.read();
     if (ch == 'r') mode = 0; else if (ch == 'h') mode = 1; else if (ch == 'c') mode = 2;
