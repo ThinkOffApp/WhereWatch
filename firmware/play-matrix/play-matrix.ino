@@ -7,7 +7,8 @@
 // Brightness is capped for USB power (64 LEDs at full white would ask far more than a port gives).
 // Build:  arduino-cli compile --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
 // Upload: arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
-// Serial (115200): r / h / c switch modes, s toggles serpentine wiring, digits 1-9 set brightness.
+// Serial (115200): r / h / c switch modes, s toggles serpentine wiring, digits 1-9 set brightness,
+//   k toggles the double-clap switch, B reboots into the bootloader (flash without touching the board).
 // No button needed: a DOUBLE CLAP (two sharp sounds 150-700 ms apart) also moves to the next mode.
 
 #include <Adafruit_NeoPixel.h>
@@ -16,6 +17,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
+#include "soc/rtc_cntl_reg.h"
 #if __has_include("wifi_secrets.h")
 #include "wifi_secrets.h"
 #else
@@ -27,7 +29,7 @@ static const int DATA_PIN = D6;
 static const int BTN_PIN = D1;
 static const int N = 64;
 static bool serpentine = false;          // most 8x8 panels are row-major; flip with 's' if the picture zigzags
-static uint8_t brightness = 24;          // of 255
+static uint8_t brightness = 12;          // of 255 (petrus: 24 was too bright on the desk)
 Adafruit_NeoPixel px(N, DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 static int idx(int x, int y) {           // x right, y down, 0..7
@@ -41,9 +43,12 @@ static bool micOk = false;
 static float loudness = 0.0f;            // 0..1, smoothed
 static float loudPeak = 0.0f;
 
-static uint32_t lastClap = 0;            // double-clap detector: two sharp peaks 150-700 ms apart
+static uint32_t lastClap = 0;            // double-clap detector: two sharp onsets 150-600 ms apart, quiet between, 2 s lockout after
+static uint32_t clapLockout = 0;
+static bool quietBetween = false;
 static float prevLevel = 0.0f;
 static bool clapPending = false;
+static bool clapEnabled = true;          // serial k / POST /api/clap toggles the double-clap mode switch
 
 static void micSample() {
   if (!micOk) return;
@@ -61,12 +66,14 @@ static void micSample() {
   if (level > loudPeak) loudPeak = level;
   // a clap: sudden jump from quiet to loud
   uint32_t now = millis();
-  if (now < 2500) { prevLevel = level; return; }   // ignore the start-up transient
-  if (level > 0.55f && prevLevel < 0.25f && now - lastClap > 150) {
-    if (lastClap && now - lastClap < 700) { clapPending = true; lastClap = 0; }
-    else lastClap = now;
-  }
-  if (lastClap && now - lastClap > 700) lastClap = 0;   // single clap expired
+  if (!clapEnabled || now < 2500 || now < clapLockout) { prevLevel = level; lastClap = 0; return; }   // start-up transient / after a switch
+  bool onset = level > 0.75f && prevLevel < 0.15f;   // a clap: near-silence to near-full-scale in one step; speech never does this
+  if (onset) {
+    if (lastClap && quietBetween && now - lastClap >= 150 && now - lastClap <= 600) {
+      clapPending = true; lastClap = 0; clapLockout = now + 2000;
+    } else { lastClap = now; quietBetween = false; }
+  } else if (lastClap && level < 0.15f) quietBetween = true;   // the gap between the two claps must be quiet
+  if (lastClap && now - lastClap > 600) lastClap = 0;           // single clap expired
   prevLevel = level;
 }
 
@@ -86,15 +93,23 @@ static bool camInit() {
   c.grab_mode = CAMERA_GRAB_LATEST;
   if (esp_camera_init(&c) != ESP_OK) return false;
   sensor_t *s = esp_camera_sensor_get();
-  if (s) { s->set_hmirror(s, 1); }       // mirror: looking at the panel feels like a mirror
+  if (s) {
+    s->set_hmirror(s, 1);                // mirror: looking at the panel feels like a mirror
+    s->set_exposure_ctrl(s, 1); s->set_aec2(s, 1); s->set_ae_level(s, -2);   // auto exposure, biased dark
+    s->set_gain_ctrl(s, 1); s->set_gainceiling(s, GAINCEILING_2X);           // no runaway gain in a dim room
+    s->set_whitebal(s, 1); s->set_awb_gain(s, 1);
+  }
   return true;
 }
 
+static uint8_t camLo = 0, camHi = 255;   // running black / white points of the frame (contrast stretch)
 static void showCamera() {
   camera_fb_t *fb = esp_camera_fb_get();
   if (!fb) return;
+  if (fb->format != PIXFORMAT_RGB565) { esp_camera_fb_return(fb); return; }
   int bw = fb->width / 8, bh = fb->height / 8;
   uint16_t *p = (uint16_t *)fb->buf;
+  uint8_t cell[64][3]; int lo = 255, hi = 0; long sum = 0;
   for (int gy = 0; gy < 8; gy++) for (int gx = 0; gx < 8; gx++) {
     unsigned long r = 0, g = 0, b = 0; int n = 0;
     for (int y = gy * bh; y < (gy + 1) * bh; y += 2) for (int x = gx * bw; x < (gx + 1) * bw; x += 2) {
@@ -102,55 +117,64 @@ static void showCamera() {
       v = (v >> 8) | (v << 8);           // RGB565 arrives big-endian from the sensor
       r += (v >> 11) & 0x1F; g += (v >> 5) & 0x3F; b += v & 0x1F; n++;
     }
-    if (!n) continue;
-    px.setPixelColor(idx(gx, gy), px.Color((r / n) << 3, (g / n) << 2, (b / n) << 3));
+    if (!n) n = 1;
+    uint8_t *c = cell[gy * 8 + gx];
+    c[0] = (r / n) << 3; c[1] = (g / n) << 2; c[2] = (b / n) << 3;
+    int lum = (c[0] * 3 + c[1] * 6 + c[2]) / 10;
+    if (lum < lo) lo = lum; if (lum > hi) hi = lum; sum += lum;
   }
+  int fw = fb->width, fh = fb->height, ff = fb->format;
   esp_camera_fb_return(fb);
+  // stretch the frame's own range to full: a flat frame (lens covered, saturated) goes dark instead of white
+  camLo = (camLo * 3 + lo) / 4; camHi = (camHi * 3 + hi) / 4;
+  int span = camHi - camLo; if (span < 24) span = 24;
+  for (int i = 0; i < 64; i++) {
+    int r = (cell[i][0] - camLo) * 255 / span, g = (cell[i][1] - camLo) * 255 / span, b = (cell[i][2] - camLo) * 255 / span;
+    if (r < 0) r = 0; if (g < 0) g = 0; if (b < 0) b = 0;
+    if (r > 255) r = 255; if (g > 255) g = 255; if (b > 255) b = 255;
+    px.setPixelColor(idx(i % 8, i / 8), px.gamma32(px.Color(r, g, b)));
+  }
   px.show();
+  static uint32_t lastStat = 0;
+  if (millis() - lastStat > 2000) { lastStat = millis(); Serial.printf("cam %dx%d fmt=%d lum min=%d mean=%ld max=%d stretch %d..%d\n", fw, fh, ff, lo, sum / 64, hi, camLo, camHi); }
 }
 
-// ---- heart ----
-static const uint8_t HEART[8] = {
-  0b01100110,
-  0b11111111,
-  0b11111111,
-  0b11111111,
-  0b01111110,
-  0b00111100,
-  0b00011000,
-  0b00000000,
+// ---- heart: the ThinkOff logo's concentric colours, rippling from the core outwards ----
+// Level per pixel: 0 = core ... 3 = heart edge, 4 = background (the logo's outermost band, drawn dim so the heart stands out).
+static const uint8_t HEART_LEVEL[8][8] = {
+  {4,3,3,4,4,3,3,4},
+  {3,2,2,3,3,2,2,3},
+  {3,2,1,0,0,1,2,3},
+  {3,2,1,1,1,1,2,3},
+  {4,3,2,1,1,2,3,4},
+  {4,4,3,2,2,3,4,4},
+  {4,4,4,3,3,4,4,4},
+  {4,4,4,4,4,4,4,4},
 };
+// Logo colours from the centre out: white core, green, yellow, magenta, hot pink, pale pink (heart-v2 in WhereWatch PR #9)
+static const int NPAL = 6;
+static uint32_t PAL[NPAL] = {0xFFFFFF, 0x74D42C, 0xFFC400, 0xFF00E5, 0xFF3AD6, 0xFF8DE6};
+static uint32_t heartBase = 0xFF8DE6;   // POST /api/color: replaces the pale pink (outermost) band
+static float heartSpeed = 0.9f;         // bands per second travelling outwards
 
-// Ring index per heart pixel: 0 = outer edge ... 3 = core, drawn from the logo (pink, fuchsia, orange/yellow, lime, white centre)
-static const uint8_t HEART_RING[8][8] = {
-  {9,0,0,9,9,0,0,9},
-  {0,1,1,0,0,1,1,0},
-  {0,1,2,2,2,2,1,0},
-  {0,1,2,3,3,2,1,0},
-  {9,0,1,2,2,1,0,9},
-  {9,9,0,1,1,0,9,9},
-  {9,9,9,0,0,9,9,9},
-  {9,9,9,9,9,9,9,9},
-};
-static uint32_t heartBase = 0xFF77FF;   // settable over the API (outer ring); the inner rings follow the logo
-static uint32_t RING_COLORS[4] = {0xFF77FF, 0xFF00FF, 0xFFAA00, 0x99DD00};
-
-static uint32_t scaleColor(uint32_t c, float k) {
-  uint8_t r = ((c >> 16) & 0xFF) * k, g = ((c >> 8) & 0xFF) * k, b = (c & 0xFF) * k;
-  return px.Color(r, g, b);
+static uint32_t mixColor(uint32_t a, uint32_t b, float t, float k) {
+  int r = (((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t) * k;
+  int g = (((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t) * k;
+  int bl = ((a & 0xFF) * (1 - t) + (b & 0xFF) * t) * k;
+  return px.Color(r, g, bl);
 }
 
 static void showHeart(uint32_t now) {
-  // the whole heart breathes; sound makes it beat harder and brighter, the colours stay the logo's
-  float pulse = 0.75f + 0.25f * sinf(now / 380.0f) + loudPeak * 0.35f;
-  if (pulse > 1.0f) pulse = 1.0f;
-  RING_COLORS[0] = heartBase;
+  PAL[NPAL - 1] = heartBase;
+  float phase = now / 1000.0f * heartSpeed;   // a colour born at the core reaches band d after d / heartSpeed seconds
+  int step = (int)phase; float frac = phase - step;
+  float pulse = 0.85f + loudPeak * 0.15f;      // sound only nudges the brightness
   for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
-    uint8_t ring = HEART_RING[y][x];
-    uint32_t c = 0;
-    if (ring == 3 && ((x == 3 && y == 3) || (x == 4 && y == 3))) c = scaleColor(0xFFFFFF, pulse);   // white core
-    else if (ring < 4) c = scaleColor(RING_COLORS[ring], pulse);
-    px.setPixelColor(idx(x, y), px.gamma32(c));
+    int lvl = HEART_LEVEL[y][x];
+    int i0 = ((lvl - step) % NPAL + NPAL) % NPAL;        // colour currently on this band
+    int i1 = ((lvl - step - 1) % NPAL + NPAL) % NPAL;    // the one arriving from the band inside
+    float k = pulse * (lvl == 4 ? 0.3f : 1.0f);          // background band dim
+    px.setPixelColor(idx(x, y), px.gamma32(mixColor(PAL[i0], PAL[i1], frac, k)));
   }
   px.show();
 }
@@ -188,8 +212,8 @@ static int mode = 0;
 static const char *MODE_NAME[3] = {"rainbow", "heart", "camera"};
 
 static void announce() {
-  Serial.printf("mode %d %s  mic=%s cam=%s serpentine=%d brightness=%d\n", mode, MODE_NAME[mode],
-                micOk ? "ok" : "off", camOk ? "ok" : "off", serpentine, brightness);
+  Serial.printf("mode %d %s  mic=%s cam=%s serpentine=%d brightness=%d clap=%d\n", mode, MODE_NAME[mode],
+                micOk ? "ok" : "off", camOk ? "ok" : "off", serpentine, brightness, clapEnabled);
 }
 
 static void indexTest() {                 // lights pixel 0..7 along the first row so the wiring order is obvious
@@ -197,10 +221,17 @@ static void indexTest() {                 // lights pixel 0..7 along the first r
   px.clear(); px.show();
 }
 
+static void enterBootloader() {          // reboot into the ROM download mode so a flash never needs the B button
+  Serial.println("rebooting into bootloader");
+  Serial.flush(); delay(50);
+  REG_WRITE(RTC_CNTL_OPTION1_REG, RTC_CNTL_FORCE_DOWNLOAD_BOOT);
+  esp_restart();
+}
+
 static void sendState() {
   char buf[200];
-  snprintf(buf, sizeof buf, "{\"mode\":%d,\"modeName\":\"%s\",\"brightness\":%d,\"serpentine\":%d,\"color\":\"%06X\",\"mic\":%d,\"cam\":%d}",
-           mode, MODE_NAME[mode], brightness, serpentine, (unsigned)heartBase, micOk, camOk);
+  snprintf(buf, sizeof buf, "{\"mode\":%d,\"modeName\":\"%s\",\"brightness\":%d,\"serpentine\":%d,\"color\":\"%06X\",\"mic\":%d,\"cam\":%d,\"clap\":%d}",
+           mode, MODE_NAME[mode], brightness, serpentine, (unsigned)heartBase, micOk, camOk, clapEnabled);
   web.send(200, "application/json", buf);
 }
 
@@ -211,6 +242,8 @@ static void webSetup() {
   web.on("/api/brightness", HTTP_POST, []() { int v = web.arg("v").toInt(); if (v >= 1 && v <= 255) { brightness = v; px.setBrightness(brightness); } sendState(); });
   web.on("/api/serpentine", HTTP_POST, []() { serpentine = web.arg("v").toInt() != 0; sendState(); });
   web.on("/api/color", HTTP_POST, []() { String h = web.arg("hex"); if (h.length() == 6) heartBase = strtoul(h.c_str(), nullptr, 16); sendState(); });
+  web.on("/api/clap", HTTP_POST, []() { clapEnabled = web.arg("v").toInt() != 0; sendState(); });
+  web.on("/api/bootloader", HTTP_POST, []() { web.send(200, "application/json", "{\"ok\":1}"); delay(100); enterBootloader(); });
   web.on("/api/pixels", HTTP_GET, []() {
     String out = "["; out.reserve(64 * 9 + 2);
     for (int i = 0; i < N; i++) { uint32_t c = px.getPixelColor(i); char b[12]; snprintf(b, sizeof b, "%s\"%06X\"", i ? "," : "", (unsigned)(c & 0xFFFFFF)); out += b; }
@@ -255,8 +288,7 @@ void loop() {
   btnWas = btn;
   micSample();
   if (clapPending) {                       // double clap = next mode, with a short white blink as the acknowledgement
-    clapPending = false; mode = (mode + 1) % 3;
-    px.fill(px.Color(60, 60, 60)); px.show(); delay(80);
+    clapPending = false; mode = (mode + 1) % 3;   // no flash: the mode change is the acknowledgement (petrus: "no all white")
     Serial.println("double clap");
     announce();
   }
@@ -264,6 +296,8 @@ void loop() {
     char ch = Serial.read();
     if (ch == 'r') mode = 0; else if (ch == 'h') mode = 1; else if (ch == 'c') mode = 2;
     else if (ch == 's') serpentine = !serpentine;
+    else if (ch == 'k') clapEnabled = !clapEnabled;
+    else if (ch == 'B') enterBootloader();
     else if (ch >= '1' && ch <= '9') { brightness = (ch - '0') * 12; px.setBrightness(brightness); }
     else continue;
     announce();
