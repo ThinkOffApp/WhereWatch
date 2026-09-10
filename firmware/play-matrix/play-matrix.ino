@@ -53,6 +53,7 @@ static void micSample() {
   if (level > loudPeak) loudPeak = level;
   // a clap: sudden jump from quiet to loud
   uint32_t now = millis();
+  if (now < 2500) { prevLevel = level; return; }   // ignore the start-up transient
   if (level > 0.55f && prevLevel < 0.25f && now - lastClap > 150) {
     if (lastClap && now - lastClap < 700) { clapPending = true; lastClap = 0; }
     else lastClap = now;
