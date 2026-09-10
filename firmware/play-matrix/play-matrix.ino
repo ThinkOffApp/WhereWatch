@@ -3,7 +3,7 @@
 //   1 heart        : the ThinkOff heart in brand pink, hue cycling with the room's loudness
 //                    from the Sense board's PDM microphone, a beat on every peak
 //   2 camera       : the OV5640 frame shrunk to 8x8, one pixel per LED, live
-// Wiring: matrix V+ -> XIAO 5V (USB power), V- -> GND, IN -> D0; button between D1 and GND.
+// Wiring: matrix V+ -> XIAO 5V (USB power), V- -> GND, IN -> D6; button between D1 and GND.
 // Brightness is capped for USB power (64 LEDs at full white would ask far more than a port gives).
 // Build:  arduino-cli compile --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
 // Upload: arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp32:esp32:XIAO_ESP32S3:PSRAM=opi firmware/play-matrix
@@ -14,7 +14,7 @@
 #include "esp_camera.h"
 
 // ---- matrix ----
-static const int DATA_PIN = D0;
+static const int DATA_PIN = D6;
 static const int BTN_PIN = D1;
 static const int N = 64;
 static bool serpentine = false;          // most 8x8 panels are row-major; flip with 's' if the picture zigzags
