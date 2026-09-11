@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "matrix-web-mock",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["firmware/matrix/web/mock_server.py", "8090"],
+      "port": 8090
+    }
+  ]
+}
