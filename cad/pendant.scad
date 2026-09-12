@@ -59,6 +59,15 @@ btn_from_top = 25.5;   // SW2 on the carrier at x = 25.5, through the +y wall
 sw_from_top  = 17.5;   // SW1 slide switch on the carrier at x = 33.5, slot through the -y wall
 sw_l = 6; sw_w = 2.2;
 usb_from_top = 30.5;   // XIAO USB-C at the +y side wall (board x = 20.5), no longer in the bottom end
+// OLED WINDOW: OFF by default since 13 Sep 2026, and this is a decision, not an oversight.
+// The window (x 40.5..52.5, y +-3.25, back of the tip) sits directly over FOUR parts on the
+// board's back side: J3 the u.FL antenna connector is entirely inside it, R1 likewise, and U2
+// the IMU and Q2 clip its edges. A search over the whole back face found NO clear rectangle for
+// a window of any size down to 6 x 3.5 mm, so the panel cannot simply be moved. Cutting the
+// window anyway would open a hole onto the antenna connector.
+// J6, the panel's connector, stays on the board and is routed, so a future revision can add the
+// display back without a board change. Set this true only after the tip's back side is re-laid.
+oled_window = false;
 oled_from_top = 6.5;   // 0.42" OLED window on the BACK of the tip, centred on y=0, x 40.5..52.5.
                        // The PANEL sits here; its connector J6 is elsewhere on the board at
                        // (37.20, 5.40) and reaches it by the flex tail. Do not conflate the two:
@@ -196,8 +205,8 @@ module openings() {
     translate([btn_x, wid/2 - wall - 1, 0]) rotate([-90, 0, 0]) cylinder(d = btn_d, h = wall + 3);
     // slide switch slot (-y wall)
     translate([len/2 - sw_from_top - sw_l/2, -wid/2 - 2, -sw_w/2]) cube([sw_l, wall + 4, sw_w]);
-    // OLED window on the back of the tip
-    translate([len/2 - oled_from_top - oled_l/2, -oled_w/2, -head_thick/2 - 1]) cube([oled_l, oled_w, wall + 2]);
+    // OLED window on the back of the tip (see oled_window above: off until the back is re-laid)
+    if (oled_window) translate([len/2 - oled_from_top - oled_l/2, -oled_w/2, -head_thick/2 - 1]) cube([oled_l, oled_w, wall + 2]);
 }
 
 module body() {
