@@ -75,6 +75,61 @@ engrave_font  = "DejaVu Sans:style=Bold";
 engrave_svg   = "";     // e.g. "keys.svg"
 emoji_size    = 12;
 
+/* [Privacy marks - what the device promises the people around it] ------------------------------
+ * A camera worn on a cord has to say what it does not do, on the side that faces other people,
+ * which is the FRONT, beside the lens. Two marks, each a circle with a bar through it:
+ *   no faces : a head and shoulders, crossed out
+ *   no video : a camera body with its lens, crossed out
+ * Engraved 0.6 mm into the front face at 9 mm across, big enough to read at arm's length.
+ */
+privacy_marks = true;
+pm_d          = 9;      // mark diameter
+pm_depth      = 0.6;
+pm_stroke     = 0.9;    // ring and bar thickness
+
+module ring_and_bar() {
+    difference() { circle(d = pm_d); circle(d = pm_d - 2*pm_stroke); }
+    rotate(-45) square([pm_d * 0.92, pm_stroke], center = true);
+}
+module no_faces_2d() {
+    ring_and_bar();
+    intersection() {                                   // head + shoulders, kept inside the ring
+        circle(d = pm_d - 2.2*pm_stroke);
+        union() {
+            translate([0, pm_d*0.09]) circle(d = pm_d*0.30);                 // head
+            translate([0, -pm_d*0.20]) scale([1, 0.62]) circle(d = pm_d*0.58); // shoulders
+        }
+    }
+}
+module no_video_2d() {
+    ring_and_bar();
+    intersection() {
+        circle(d = pm_d - 2.2*pm_stroke);
+        union() {
+            translate([-pm_d*0.06, 0]) square([pm_d*0.40, pm_d*0.27], center = true);   // body
+            translate([ pm_d*0.20, 0]) rotate(-90) polygon([[-pm_d*0.13, 0], [pm_d*0.13, 0], [0, pm_d*0.20]]); // lens
+        }
+    }
+}
+pm_x    = cam_x - 12;      // the pair sits below the lens, on the front
+pm_cut  = 0.45;            // the dome is planed this deep so both marks cut evenly
+pm_pad_l = pm_d + 3;
+pm_pad_w = 2*pm_d + 6;
+module privacy_pad() {
+    // plane a shallow flat on the domed front, the same trick the back engraving uses
+    translate([pm_x, 0, head_thick/2 - pm_cut])
+        linear_extrude(height = thick)
+            offset(r = 3) square([pm_pad_l - 6, pm_pad_w - 6], center = true);
+}
+module privacy_engraving() {
+    pm_z = head_thick/2 - pm_cut;
+    privacy_pad();
+    for (i = [-1, 1])
+        translate([pm_x, i * (pm_d/2 + 1.5), pm_z - pm_depth])
+            linear_extrude(height = pm_depth + 0.2)
+                if (i < 0) no_faces_2d(); else no_video_2d();
+}
+
 $fn = 48;
 
 // ---- friendly pebble: big top dome hulled with two soft bottom corners ----
@@ -126,6 +181,7 @@ module engraving() {
 module personalise() { engrave_pad(); engraving(); }
 
 module openings() {
+    if (privacy_marks) privacy_engraving();
     // camera lens (front, +z)
     translate([cam_x, 0, 0]) cylinder(d = cam_d, h = thick + 2, center = true);
     // lanyard cord hole through the top tip
