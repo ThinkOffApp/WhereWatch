@@ -189,7 +189,7 @@ module component_blocks() {
 layout_view = false;   // true = transparent shell + internal component blocks
 shape_only = false;
 // ThinkOff fuchsia (never blue - blue is not a WhereWatch colour)
-if (layout_view) {
+if (part != "both") { /* handled below */ } else if (layout_view) {
     component_blocks();
     color([0.85, 0.27, 0.94, 0.28]) body();
 } else
@@ -202,3 +202,52 @@ if (shape_only) {
         personalise();
     }
 } else body();
+
+
+/* [Printing: the case has to open] ------------------------------------------------------------
+ * The body above is a closed hollow pebble: correct as a shape, impossible to assemble. For
+ * printing it is split into a FRONT half (camera and GPS side) and a BACK half (the engraved pad),
+ * joined by a lip so they locate and stay shut. part="front" | "back" | "both" (both = preview).
+ * Export:  openscad -o front.stl -D 'part="front"' pendant.scad
+ */
+part      = "both";
+lip_h     = 2.0;    // how deep the lip reaches into the other half
+lip_t     = wall/2; // lip wall, half the shell so it nests
+seam_z    = 0;      // split plane, the pendant's mid-thickness
+seam_gap  = 0.15;   // print clearance between the halves
+
+module seam_lip() {
+    // a band that follows the inner wall, standing up from the seam into the front half
+    intersection() {
+        difference() {
+            pebble_solid(inset = wall);                 // inner surface
+            pebble_solid(inset = wall + lip_t);         // minus a thinner shell = a band
+        }
+        translate([-len, -wid, seam_z]) cube([2*len, 2*wid, lip_h]);
+    }
+}
+module seam_slot() {
+    // the same band, grown by the print clearance, removed from the back half
+    intersection() {
+        difference() {
+            pebble_solid(inset = wall - seam_gap);
+            pebble_solid(inset = wall + lip_t + seam_gap);
+        }
+        translate([-len, -wid, seam_z - 0.01]) cube([2*len, 2*wid, lip_h + 0.02]);
+    }
+}
+module half(front = true) {
+    difference() {
+        union() {
+            intersection() {
+                body();
+                if (front) translate([-len, -wid, seam_z]) cube([2*len, 2*wid, thick]);
+                else       translate([-len, -wid, seam_z - thick]) cube([2*len, 2*wid, thick]);
+            }
+            if (front) seam_lip();
+        }
+        if (!front) seam_slot();
+    }
+}
+if (part == "front") color([0.85, 0.27, 0.94]) half(true);
+else if (part == "back") color([0.75, 0.22, 0.84]) half(false);
