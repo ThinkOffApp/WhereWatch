@@ -42,10 +42,12 @@ head_thick = 13.0;
 // Teardrop sensor zone is IN LINE down the taper: GPS patch alone in
 // the narrow tip, then OV5640 + XIAO + IMU (camera and IMU stack in
 // the thickness axis on the XIAO), then the cell in the wide bottom.
-len   = bat_l + 42;                    // battery + tapered sensor zone (~102)
+// len: the cell is 40 mm wide inside a 43 mm shell, so its corners only clear the rounded bottom
+// above x = -46.2; +46 (not +42) is what leaves the sensor head its full 37.4 mm (claudeMB 2026-09-12).
+len   = bat_l + 46;                    // 106
 
 /* [Roundness] */
-r_bot = 12;     // soft bottom corners
+r_bot = 8;      // soft bottom corners (12 pushed the cell's corners through the shell)
 
 /* [Openings] */
 cam_d        = 9;      // camera lens (front, near the top)
@@ -156,7 +158,7 @@ haptic_d = 10; haptic_t = 2.7;             // coin vibration motor
 module component_blocks() {
     // battery fills the bottom half
     color([1.0, 0.55, 0.1, 0.95])
-        translate([-len/2 + wall + fit + bat_l/2, 0, 0])
+        translate([-len/2 + r_bot - 1.16 + bat_l/2, 0, 0])   // as low as the rounded corner allows
             cube([bat_l, bat_w, bat_t], center = true);
     // carrier PCB (0.8 mm) in the head, x = +11 .. tip; GPS on its top face in the tip (board x = 38.5)
     color([0.1, 0.5, 0.2, 0.95])

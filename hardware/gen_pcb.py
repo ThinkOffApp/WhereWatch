@@ -24,15 +24,51 @@ NET = os.path.join(HERE, 'out/carrier.net')
 OUT = os.path.join(HERE, 'wherewatch-carrier.kicad_pcb')
 DSN = os.path.join(HERE, 'out/wherewatch-carrier.dsn')
 
-# ---- outline: inner cavity of the head, inset from the shell ----
-INSET = 1.2 + 0.2          # wall + half the fit
-X0 = 11.0                  # board starts where the cell ends (+0.4 fit)
-TIP_CX, TIP_R = 40.0, 11.0 - INSET   # tip circle
-def half_width(x):
-    """outer shell half-width along the taper (hull line tip circle -> bottom corners), minus the inset"""
-    if x >= TIP_CX:
-        return math.sqrt(max(TIP_R**2 - (x - TIP_CX)**2, 0.0))
-    return (21.5 - 0.1329 * (x + 39.0)) - INSET
+# ---- outline: the inner cavity of the head, derived from pendant.scad's own numbers ----
+# pendant.scad (option A, 2026-09-12): a hull of the tip sphere and the two bottom-corner spheres.
+PEND_LEN, PEND_WID, WALL, FIT = 106.0, 43.0, 1.2, 0.4      # len = bat_l + 46 so the cell clears the corners
+TIP_D, R_BOT = 22.0, 8.0
+BAT_L, BAT_W = 60.0, 40.0
+INSET = WALL + FIT / 2
+TIP_CX, TIP_R = PEND_LEN / 2 - TIP_D / 2, TIP_D / 2 - INSET
+COR_CX, COR_CY, COR_R = -PEND_LEN / 2 + R_BOT, PEND_WID / 2 - R_BOT, R_BOT
+
+# where the cell ends: its corner must stay inside the rounded bottom, which is what sets the head's length
+_need = (BAT_W + FIT) / 2 - COR_CY
+CELL_X0 = COR_CX - math.sqrt((COR_R - WALL) ** 2 - _need ** 2)
+CELL_X1 = CELL_X0 + BAT_L
+X0 = round(CELL_X1 + FIT, 1)                                # the board starts where the cell ends
+
+# the straight flank is the outer tangent of the tip circle and the corner circle, brought in by INSET
+def _tangent():
+    ax, ay, ar = TIP_CX, 0.0, TIP_D / 2
+    bx, by, br = COR_CX, COR_CY, COR_R
+    dx, dy = bx - ax, by - ay
+    # unit normal n with n.A + ar = c and n.B + br = c  ->  n.(B-A) = ar - br
+    k = ar - br
+    den = dx * dx + dy * dy
+    disc = max(den - k * k, 0.0)
+    best = None
+    for sign in (1.0, -1.0):
+        nx = (k * dx - sign * dy * math.sqrt(disc)) / den
+        ny = (k * dy + sign * dx * math.sqrt(disc)) / den
+        if abs(ny) < 1e-9: continue
+        c = nx * ax + ny * ay + ar
+        y_at_tip = (c - nx * ax) / ny          # the flank must run above the centre line (+y side)
+        y_at_cor = (c - nx * bx) / ny
+        if y_at_tip > 0 and y_at_cor > y_at_tip: best = (nx, ny, c)
+    if best is None: raise SystemExit('no upper tangent found')
+    return best
+_NX, _NY, _C = _tangent()
+_X_TAN = TIP_CX + (TIP_D / 2) * _NX          # where the flank meets the tip circle
+
+def half_width(x, inset=INSET):
+    """+y edge of the inner cavity at x (the shell's outer flank brought in by `inset`)"""
+    if x >= _X_TAN:
+        dx = x - TIP_CX
+        return math.sqrt(max((TIP_D / 2) ** 2 - dx * dx, 0.0)) - inset
+    return (_C - _NX * x) / _NY - inset
+
 def outline_points(step=0.5, inset=0.0):
     pts = []
     x = X0 + inset
@@ -63,6 +99,9 @@ PLACE = {
     'J3': (44.3, 0.0, 0, B),       # u.FL for the external GNSS antenna, under the module's tip
     'J6': (34.0, 5.4, 0, B),       # OLED tail connector (1 mm JST SH)
 }
+SHIFT = X0 - 11.0                                   # the hand placements were laid out for X0 = 11.0
+PLACE = {r: (x + SHIFT, y, rot, side) for r, (x, y, rot, side) in PLACE.items()}
+print(f'outline: cell ends {CELL_X1:.2f}, board {X0:.2f}..{TIP_CX + TIP_R:.2f}, shift {SHIFT:+.2f}, tip at {PEND_LEN/2:.1f}')
 FP = {}   # ref -> lib:name, from the netlist
 # layout-side footprint substitutions (claudeMB 2026-09-12): the through-hole JST PH drills land under the
 # XIAO module's body, so the three battery/speaker/motor connectors use the surface-mount variant instead.
@@ -104,17 +143,17 @@ print('packer places', AUTO)
 # ---- board ----
 board = pcbnew.BOARD(); print('stage: board')
 ds = board.GetDesignSettings()
-ds.SetCopperLayerCount(2)
+ds.SetCopperLayerCount(4)   # 2 layers plateaued at ~28 unrouted nets on this density; JLC 4-layer is ~the same price
 # JLCPCB 2-layer economy rules: 0.127 mm trace/space, 0.3 mm drill -> use 0.15/0.15 and 0.5/0.3 vias
 nc = ds.m_NetSettings.GetDefaultNetclass()           # KiCad 10 API
-for setter, val in ((getattr(nc, 'SetTrackWidth', None), 0.15), (getattr(nc, 'SetClearance', None), 0.127),
-                    (getattr(nc, 'SetViaDiameter', None), 0.5), (getattr(nc, 'SetViaDrill', None), 0.3)):
+for setter, val in ((getattr(nc, 'SetTrackWidth', None), 0.15), (getattr(nc, 'SetClearance', None), 0.2),
+                    (getattr(nc, 'SetViaDiameter', None), 0.6), (getattr(nc, 'SetViaDrill', None), 0.3)):
     if setter: setter(int(val * 1e6))
 for setter, val in ((getattr(ds, 'SetCurrentTrackWidth', None), 0.15), (getattr(ds, 'SetCurrentViaSize', None), 0.5),
                     (getattr(ds, 'SetCurrentViaDrill', None), 0.3)):
     if setter: setter(int(val * 1e6))
 ds.m_TrackMinWidth = int(0.127e6); ds.m_ViasMinSize = int(0.45e6); ds.m_MinThroughDrill = int(0.3e6); ds.m_MinClearance = int(0.127e6)
-ds.m_CopperEdgeClearance = int(0.3e6)   # JLCPCB trace-to-edge minimum
+ds.m_CopperEdgeClearance = int(0.3e6); ds.m_HoleClearance = int(0.2e6); ds.m_HoleToHoleMin = int(0.3e6)   # JLCPCB trace-to-edge minimum
 
 print('stage: rules done')
 # outline
@@ -162,6 +201,7 @@ for name, nodes in nets:
 POWER = {'GND', '+3V3', 'VBAT', 'VBUS', 'BAT_RAW', '+5V', 'BAT+', 'BAT-'}
 def bb_of(fp):
     b = fp.GetBoundingBox(False, False); return (b.GetLeft()/1e6, b.GetTop()/1e6, b.GetRight()/1e6, b.GetBottom()/1e6)
+
 def inside(l, t, r, b, slack=0.3):
     for cx in (l, r):
         if cx < X0 + slack or cx > TIP_CX + TIP_R - slack: return False
@@ -209,7 +249,14 @@ for ref in order:
     print(f'  packed {ref:4} {"B" if side_try == B else "T"} at ({x:5.1f},{y:5.1f}) near ({ax:4.1f},{ay:4.1f})')
 # geometry checks: courtyard/pad bbox inside the outline, no same-side overlaps (0.3 mm slack)
 def bbox(fp):
-    b = fp.GetBoundingBox(False, False); return (b.GetLeft()/1e6, b.GetTop()/1e6, b.GetRight()/1e6, b.GetBottom()/1e6)
+    """copper extent: what must stay on the board (silkscreen may overhang, it is clipped at the edge)"""
+    xs, ys = [], []
+    for pd in fp.Pads():
+        b = pd.GetBoundingBox()
+        xs += [b.GetLeft()/1e6, b.GetRight()/1e6]; ys += [b.GetTop()/1e6, b.GetBottom()/1e6]
+    if not xs:
+        b = fp.GetBoundingBox(False, False); return (b.GetLeft()/1e6, b.GetTop()/1e6, b.GetRight()/1e6, b.GetBottom()/1e6)
+    return (min(xs), min(ys), max(xs), max(ys))
 problems = 0
 for ref, fp in fps.items():
     l, t, r, b = bbox(fp)
@@ -251,8 +298,8 @@ for a in range(len(refs)):
             print(f'  OVERLAP: {refs[a]} and {refs[c]}'); problems += 1
 print(f'geometry problems: {problems}')
 print('stage: footprints+pads')
-# ground pours both sides
-for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+# ground pours: outer layers plus a solid inner ground plane (In1), In2 left for routing
+for layer in (pcbnew.F_Cu, pcbnew.B_Cu):   # inner layers stay free for routing; ground pours on the outers
     z = pcbnew.ZONE(board); z.SetLayer(layer); z.SetNet(netinfo['GND']); z.SetIsFilled(False)
     z.SetLocalClearance(int(0.15e6)); z.SetMinThickness(int(0.25e6))
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)   # solid pad connections: thermal spokes starved on 0.15 mm rules

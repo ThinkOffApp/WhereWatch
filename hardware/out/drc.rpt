@@ -1,174 +1,134 @@
 ** Drc report for wherewatch-carrier.kicad_pcb **
-** Created on 2026-09-12T19:35:56 **
+** Created on 2026-09-12T19:48:03 **
 ** Report includes: Errors **
 
-** Found 23 DRC violations **
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2341 mm)
-    Rule: board setup constraints hole; error
-    @(31.0717 mm, -0.7174 mm): Track [+3V3] on F.Cu, length 0.8127 mm
-    @(31.7852 mm, -0.7816 mm): Via [GNSS_EN] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2372 mm)
-    Rule: board setup constraints hole; error
-    @(32.8917 mm, -0.7641 mm): Track [GNSS_EN] on F.Cu, length 0.7641 mm
-    @(32.4295 mm, -0.4838 mm): Via [+3V3] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2338 mm)
-    Rule: board setup constraints hole; error
-    @(31.8625 mm, 0.2000 mm): Pad 1 [VBUS_DET] of Q2 on B.Cu
-    @(32.4295 mm, -0.4838 mm): Via [+3V3] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2418 mm)
-    Rule: board setup constraints hole; error
-    @(14.8376 mm, -0.3552 mm): Track [VIB_IN_R] on B.Cu, length 3.8873 mm
-    @(14.3708 mm, 0.5802 mm): Via [VIB_IN] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2315 mm)
-    Rule: board setup constraints hole; error
-    @(35.0695 mm, 5.8507 mm): Track [GNSS_TX] on F.Cu, length 4.7904 mm
-    @(31.4904 mm, 8.7842 mm): Via [SDA] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2287 mm)
-    Rule: board setup constraints hole; error
-    @(32.4256 mm, 5.1177 mm): Track [+3V3] on B.Cu, length 2.2079 mm
-    @(32.8793 mm, 5.3056 mm): Via [SDA] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2287 mm)
-    Rule: board setup constraints hole; error
-    @(32.2330 mm, 7.4000 mm): Track [+3V3] on B.Cu, length 2.3943 mm
-    @(31.4904 mm, 8.7842 mm): Via [SDA] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2303 mm)
-    Rule: board setup constraints hole; error
-    @(34.3847 mm, -5.2208 mm): Track [VIB_IN_R] on F.Cu, length 0.1493 mm
-    @(34.5726 mm, -5.6745 mm): Via [VBUS] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2288 mm)
-    Rule: board setup constraints hole; error
-    @(14.5449 mm, 1.1798 mm): Track [SDA] on F.Cu, length 12.1184 mm
-    @(24.9528 mm, 0.7260 mm): Via [VBAT] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2287 mm)
-    Rule: board setup constraints hole; error
-    @(14.7405 mm, -9.5732 mm): Track [VBAT_SENSE] on F.Cu, length 3.1622 mm
-    @(14.3939 mm, -8.5850 mm): Via [BAT_RAW] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2433 mm)
-    Rule: board setup constraints hole; error
-    @(14.2160 mm, -9.0694 mm): Track [VIB_IN_R] on B.Cu, length 0.4410 mm
-    @(14.3939 mm, -8.5850 mm): Via [BAT_RAW] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2305 mm)
-    Rule: board setup constraints hole; error
-    @(39.8200 mm, 0.2500 mm): Track [+3V3] on B.Cu, length 0.2500 mm
-    @(39.8603 mm, 0.7037 mm): Via [VIB_IN_R] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2287 mm)
-    Rule: board setup constraints hole; error
-    @(42.5816 mm, -2.0191 mm): Track [SW_G] on B.Cu, length 1.7525 mm
-    @(41.6437 mm, -1.5654 mm): Via [VIB_N] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2287 mm)
-    Rule: board setup constraints hole; error
-    @(14.2657 mm, 5.6516 mm): Track [VBAT_SENSE] on B.Cu, length 2.0638 mm
-    @(15.3983 mm, 5.1606 mm): Via [SPK_P] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2437 mm)
-    Rule: board setup constraints hole; error
-    @(39.8200 mm, 0.0000 mm): Pad 1 [+3V3] of C5 on B.Cu
-    @(39.8603 mm, 0.7037 mm): Via [VIB_IN_R] on F.Cu - B.Cu
-[hole_clearance]: Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2338 mm)
-    Rule: board setup constraints hole; error
-    @(31.8625 mm, 0.2000 mm): Pad 1 [VBUS_DET] of Q2 on B.Cu
-    @(32.4295 mm, -0.4838 mm): Via [+3V3] on F.Cu - B.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+** Found 19 DRC violations **
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1750 mm)
+    Local override; error
+    @(39.2150 mm, 0.7500 mm): Pad 1 [GND] of U2 on B.Cu
+    @(39.8775 mm, 0.9125 mm): Pad 14 [SDA] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(39.2150 mm, -0.2500 mm): Pad 3 [GND] of U2 on B.Cu
+    @(39.2150 mm, -0.7500 mm): Pad 4 [BTN] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1750 mm)
+    Local override; error
+    @(39.2150 mm, -0.7500 mm): Pad 4 [BTN] of U2 on B.Cu
+    @(39.8775 mm, -0.9125 mm): Pad 5 [+3V3] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(39.8775 mm, -0.9125 mm): Pad 5 [+3V3] of U2 on B.Cu
+    @(40.3775 mm, -0.9125 mm): Pad 6 [GND] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1750 mm)
+    Local override; error
+    @(40.8775 mm, -0.9125 mm): Pad 7 [GND] of U2 on B.Cu
+    @(41.5400 mm, -0.7500 mm): Pad 8 [+3V3] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(41.5400 mm, -0.7500 mm): Pad 8 [+3V3] of U2 on B.Cu
+    @(41.5400 mm, -0.2500 mm): Pad 9 [unconnected-(U2-INT2-Pad9)] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(41.5400 mm, -0.2500 mm): Pad 9 [unconnected-(U2-INT2-Pad9)] of U2 on B.Cu
+    @(41.5400 mm, 0.2500 mm): Pad 10 [unconnected-(U2-NC-Pad10)] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(41.5400 mm, 0.2500 mm): Pad 10 [unconnected-(U2-NC-Pad10)] of U2 on B.Cu
+    @(41.5400 mm, 0.7500 mm): Pad 11 [unconnected-(U2-NC-Pad11)] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1750 mm)
+    Local override; error
+    @(41.5400 mm, 0.7500 mm): Pad 11 [unconnected-(U2-NC-Pad11)] of U2 on B.Cu
+    @(40.8775 mm, 0.9125 mm): Pad 12 [+3V3] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(40.8775 mm, 0.9125 mm): Pad 12 [+3V3] of U2 on B.Cu
+    @(40.3775 mm, 0.9125 mm): Pad 13 [SCL] of U2 on B.Cu
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(40.3775 mm, 0.9125 mm): Pad 13 [SCL] of U2 on B.Cu
+    @(39.8775 mm, 0.9125 mm): Pad 14 [SDA] of U2 on B.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0535 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, -6.9398 mm): Pad 1 [VBAT_SENSE] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, -6.9398 mm): Pad 1 [VBAT_SENSE] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0242 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, -4.3998 mm): Pad 2 [BTN] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, -4.3998 mm): Pad 2 [BTN] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, -1.8598 mm): Pad 3 [GNSS_EN] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, -1.8598 mm): Pad 3 [GNSS_EN] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, 0.6802 mm): Pad 4 [VIB_IN] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, 0.6802 mm): Pad 4 [VIB_IN] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, 3.2202 mm): Pad 5 [SDA] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, 3.2202 mm): Pad 5 [SDA] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, 5.7602 mm): Pad 6 [SCL] of U1 on F.Cu
-[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.1295 mm)
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, 5.7602 mm): Pad 6 [SCL] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.0000 mm)
     Rule: board setup constraints edge; error
-    @(11.0000 mm, -13.4550 mm): Polygon on Edge.Cuts
-    @(12.5045 mm, 8.3002 mm): Pad 7 [GNSS_RX] of U1 on F.Cu
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(15.7045 mm, 8.3002 mm): Pad 7 [GNSS_RX] of U1 on F.Cu
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.3000 mm; actual 0.2322 mm)
+    Rule: board setup constraints edge; error
+    @(14.2000 mm, -13.0277 mm): Polygon on Edge.Cuts
+    @(14.9900 mm, 11.7500 mm): Pad 1 [VIB_IN] of R3 on B.Cu
 
-** Found 18 unconnected pads **
+** Found 12 unconnected pads **
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.9900 mm, 11.7500 mm): Pad 1 [VIB_IN] of R3 on B.Cu
+    @(15.7045 mm, 0.6802 mm): Pad 4 [VIB_IN] of U1 on F.Cu
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on F.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on F.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on F.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on F.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on F.Cu, priority 0
+    @(14.6500 mm, -12.5235 mm): Zone [GND] on B.Cu, priority 0
 [unconnected_items]: Missing connection between items
     Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-[unconnected_items]: Missing connection between items
-    Local override; error
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on B.Cu, priority 0
-    @(11.4500 mm, -12.9452 mm): Zone [GND] on F.Cu, priority 0
+    @(14.9900 mm, -11.7500 mm): Pad 1 [VBAT] of R6 on B.Cu
+    @(19.3145 mm, 0.2982 mm): Pad 23 [VBAT] of U1 on F.Cu
 
 ** Found 0 Footprint errors **
 
