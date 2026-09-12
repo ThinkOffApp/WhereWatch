@@ -59,7 +59,11 @@ btn_from_top = 25.5;   // SW2 on the carrier at x = 25.5, through the +y wall
 sw_from_top  = 17.5;   // SW1 slide switch on the carrier at x = 33.5, slot through the -y wall
 sw_l = 6; sw_w = 2.2;
 usb_from_top = 30.5;   // XIAO USB-C at the +y side wall (board x = 20.5), no longer in the bottom end
-oled_from_top = 6.5;   // 0.42" OLED window on the BACK of the tip (header at board x = 44.5)
+oled_from_top = 6.5;   // 0.42" OLED window on the BACK of the tip, centred on y=0, x 40.5..52.5.
+                       // The PANEL sits here; its connector J6 is elsewhere on the board at
+                       // (37.20, 5.40) and reaches it by the flex tail. Do not conflate the two:
+                       // an earlier note here said "header at board x = 44.5", which was never
+                       // the connector position after the layout moved it.
 oled_l = 12; oled_w = 6.5;
 lan_d        = 3.5;    // lanyard cord hole through the top tip
 
