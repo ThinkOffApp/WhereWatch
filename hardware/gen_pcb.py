@@ -85,12 +85,12 @@ PLACE = {
     # TOP face. Thickness budget for the 13.0 mm head: tip = 1.2 wall + 6.2 GPS + 0.8 board + ~1.2 low parts
     # + 1.2 wall = 10.6; middle = 1.2 + 3.6 XIAO + 0.8 + 6.0 JST + 1.2 = 12.8. GPS and the connectors are at
     # different x, which is what lets the head stay at 13.
-    'U1': (20.5, 0.0, 0, T),       # XIAO ESP32S3 Sense, USB-C at the +y side wall
+    'U1': (21.2, 0.0, 0, T),   # +0.7: pads 1-7 were touching the left board edge (grok's DRC read)       # XIAO ESP32S3 Sense, USB-C at the +y side wall
     'U3': (38.5, 0.0, 90, T),      # ATGM336H GPS module, patch to the sky, in the tip
     'L1': (46.2, 0.0, 0, T),       # bias-T on the RF pad's side
     # BOTTOM face, middle band: the three JST PH (surface-mount variant), wires exiting toward the cell
-    'J1': (16.0, -5.8, 0, B),      # LiPo
-    'J5': (16.0,  5.8, 0, B),      # speaker (optional build)
+    'J1': (16.0, -7.0, 0, B),      # LiPo. +-7.0 not +-5.8: the PH courtyard includes the wire exit and it
+    'J5': (16.0,  7.0, 0, B),      # speaker (optional). reached over R3/R6, which sit pinned under U1's pads
     'J4': (25.5, -5.8, 0, B),      # vibration motor
     'SW2': (25.5, 7.8, 0, B),      # button, actuated through the +y wall by a shell post
     # BOTTOM face, tip band: low parts only (3.6 mm of room under the board there)
@@ -189,6 +189,10 @@ for ref, libname in FP.items():
     fp.Move(pcbnew.VECTOR2I(int(x * 1e6) - c.x, int(y * 1e6) - c.y))
     bb = fp.GetBoundingBox(False, False)
     print(f'  {ref:4} {side} bbox x {bb.GetLeft()/1e6:6.1f}..{bb.GetRight()/1e6:6.1f}  y {bb.GetTop()/1e6:6.1f}..{bb.GetBottom()/1e6:6.1f}')
+# the LGA-14 IMU's own pads sit 0.15 mm apart by construction: a local override, not a routing fix
+u2 = fps.get('U2')
+if u2:
+    for pad in u2.Pads(): pad.SetLocalClearance(int(0.1e6))
 for fp in fps.values():                              # mechanical PTH pads with no annular ring -> NPTH
     for pad in fp.Pads():
         if pad.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and pad.GetNumber() in ('', '0'):
@@ -302,9 +306,50 @@ for a in range(len(refs)):
 print(f'geometry problems: {problems}')
 print('stage: footprints+pads')
 # ground pours: outer layers plus a solid inner ground plane (In1), In2 left for routing
-for layer in (pcbnew.F_Cu, pcbnew.B_Cu):   # inner layers stay free for routing; ground pours on the outers
+# GND fanout vias, placed BEFORE routing. Left until after, there is no room: the tip fragments around
+# U2/U3 measured 0.22-0.47 mm of space, and a 0.6 mm via needs 0.50. Every SMD ground pad gets its own
+# drop to the inner plane, and the router then works around them.
+FAN_D, FAN_DRILL = 0.6, 0.3
+def pad_gap(x, y, pd):
+    """true distance from a point to a pad's rectangle. A circle of half the long side cuts INSIDE the
+    rectangle at its corners, which is how three vias ended up 0.196 mm from a XIAO pad."""
+    p, sz = pd.GetPosition(), pd.GetSize()
+    ang = -pd.GetOrientation().AsRadians()
+    dx, dy = x - p.x/1e6, y - p.y/1e6
+    ca, sa = math.cos(ang), math.sin(ang)
+    lx, ly = abs(dx*ca - dy*sa), abs(dx*sa + dy*ca)
+    return math.hypot(max(lx - sz.x/2e6, 0.0), max(ly - sz.y/2e6, 0.0))
+pad_list = [pd for f in fps.values() for pd in f.Pads()]
+fan_vias, fan = [], 0
+for f in fps.values():
+    for pd in f.Pads():
+        if pd.GetNetname() != 'GND' or pd.GetAttribute() != pcbnew.PAD_ATTRIB_SMD: continue
+        px, py = pd.GetPosition().x/1e6, pd.GetPosition().y/1e6
+        prad = max(pd.GetSize().x, pd.GetSize().y)/2e6
+        spot = None
+        for d in (prad + 0.50, prad + 0.62, prad + 0.78, prad + 1.00):
+            for k in range(16):
+                ang = k * math.pi / 8
+                x, y = px + d * math.cos(ang), py + d * math.sin(ang)
+                if x < X0 + 1.0 or x > TIP_CX + TIP_R - 1.0 or abs(y) > half_width(x) - 1.0: continue
+                if any(pad_gap(x, y, q) < FAN_D/2 + (0.05 if q.GetNetname() == 'GND' else 0.25)
+                       for q in pad_list): continue
+                if any(math.hypot(x - vx, y - vy) < 0.95 for vx, vy in fan_vias): continue
+                spot = (x, y); break
+            if spot: break
+        if not spot: print(f'  no fanout room for {f.GetReference()}.{pd.GetNumber()}'); continue
+        v = pcbnew.PCB_VIA(board); v.SetPosition(MM(*spot))
+        v.SetWidth(int(FAN_D*1e6)); v.SetDrill(int(FAN_DRILL*1e6))
+        v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+        v.SetNet(netinfo['GND']); board.Add(v); fan_vias.append(spot); fan += 1
+print(f'GND fanout vias: {fan}')
+
+# GND on all four layers. The routed inner layers carry few tracks, so In1/In2 stay near-solid planes and give
+# every fragment of the busy B.Cu pour something to reach through a stitching via.
+for layer in (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu):
     z = pcbnew.ZONE(board); z.SetLayer(layer); z.SetNet(netinfo['GND']); z.SetIsFilled(False)
     z.SetLocalClearance(int(0.15e6)); z.SetMinThickness(int(0.25e6))
+    z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)   # an unconnectable sliver is not a net, drop it
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)   # solid pad connections: thermal spokes starved on 0.15 mm rules
     ol = z.Outline(); ol.NewOutline()
     for x, y in outline_points(inset=0.45): ol.Append(int(x * 1e6), int(y * 1e6))
