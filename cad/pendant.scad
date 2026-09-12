@@ -221,7 +221,18 @@ module body() {
 }
 
 /* [Component blocks - the layout drawing (layout_view=true) shows these] */
-gps_l = 15.7; gps_w = 13.1; gps_t = 6.2;   // ATGM336H module w/ ceramic patch
+// WARNING, READ BEFORE COPYING THESE NUMBERS. They are NOT the BOM part's size.
+// The BOM part is U3 = ATGM336H-5N31 (LCSC C90770), which measures 9.8 x 10.2 mm on the board
+// and has NO ceramic patch: its antenna input is fed from J3, the u.FL, via the L1 bias-T.
+// The 15.7 x 13.1 x 6.2 below is the older patch-carrying variant this shell was drawn around,
+// and the whole tip still follows from it (tip_d = 22 "because GPS needs ~16", and 6.2 of the
+// 13.0 mm head). The volume is DELIBERATELY KEPT, because it is now the reservation for the
+// external active antenna the 5N31 requires and the enclosure otherwise has nowhere to put.
+// OPEN, 13 Sep 2026: either swap U3 for a footprint-compatible patch variant, or fit an active
+// patch on a pigtail into this cavity. Until that is decided the pendant CANNOT GET A FIX SEALED.
+// @claudemm's 3D viewer copied these three numbers from this line, so the two artefacts agreeing
+// was never corroboration. If you change them, change them here and re-derive, do not copy.
+gps_l = 15.7; gps_w = 13.1; gps_t = 6.2;   // patch-variant envelope, kept as the antenna reservation
 cam_l = 8.5;  cam_w = 8.5;  cam_t = 4.5;   // OV5640 head (FPC folds below)
 mcu_l = 21;   mcu_w = 17.8; mcu_t = 3.6;   // XIAO ESP32S3 Sense
 imu_l = 20;   imu_w = 16;   imu_t = 2.5;   // MPU-6050 breakout
