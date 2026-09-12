@@ -34,7 +34,11 @@ fit  = 0.4;     // clearance around the cell
 /* [Outer size - derived from the cell, so the shape always fits] */
 wid   = bat_w + fit + 2*wall;          // bottom width ~43 (cell decides)
 tip_d = 22;                            // narrow round tip (GPS needs ~16)
-thick = bat_t + fit + 2*wall;          // ~9.4
+thick = bat_t + fit + 2*wall;          // ~9.4 at the battery half
+// Option A (petrus, 2026-09-12): the sensor head is thicker so the carrier PCB (0.8 mm) fits under the GPS
+// module and the XIAO with the JST connectors beneath: 1.2 + 6.2 (GPS) + 0.8 + 3.6 + 1.2 = 13.0. The hull
+// tapers the thickness smoothly from the tip to the battery half.
+head_thick = 13.0;
 // Teardrop sensor zone is IN LINE down the taper: GPS patch alone in
 // the narrow tip, then OV5640 + XIAO + IMU (camera and IMU stack in
 // the thickness axis on the XIAO), then the cell in the wide bottom.
@@ -45,11 +49,16 @@ r_bot = 12;     // soft bottom corners
 
 /* [Openings] */
 cam_d        = 9;      // camera lens (front, near the top)
-cam_from_top = 30;   // below the GPS zone, where the taper has widened
+cam_from_top = 30;   // camera sits on the XIAO Sense at board x = 20.5 (carrier layout, 2026-09-12)
 usbc_w       = 9.5;    // USB-C in the bottom end
 usbc_h       = 3.4;
 btn_d        = 4;      // side button
-btn_from_top = 33;
+btn_from_top = 25.5;   // SW2 on the carrier at x = 25.5, through the +y wall
+sw_from_top  = 17.5;   // SW1 slide switch on the carrier at x = 33.5, slot through the -y wall
+sw_l = 6; sw_w = 2.2;
+usb_from_top = 30.5;   // XIAO USB-C at the +y side wall (board x = 20.5), no longer in the bottom end
+oled_from_top = 6.5;   // 0.42" OLED window on the BACK of the tip (header at board x = 44.5)
+oled_l = 12; oled_w = 6.5;
 lan_d        = 3.5;    // lanyard cord hole through the top tip
 
 /* [Personalisation - this is the anti-corporate bit] */
@@ -73,7 +82,7 @@ module pebble_solid(inset = 0) {
     hull() {
         // narrow round tip (top)
         translate([len/2 - tip_d/2, 0, 0])
-            scale([1, 1, tt / tip_d]) sphere(d = tip_d - 2*inset);
+            scale([1, 1, (head_thick - 2*inset) / tip_d]) sphere(d = tip_d - 2*inset);
         // wide bottom, rounded corners
         for (y = [-1, 1])
             translate([-len/2 + r_bot + inset, y * (hw - r_bot + inset/2), 0])
@@ -119,10 +128,14 @@ module openings() {
     translate([cam_x, 0, 0]) cylinder(d = cam_d, h = thick + 2, center = true);
     // lanyard cord hole through the top tip
     translate([len/2 - 6, 0, 0]) cylinder(d = lan_d, h = thick + 2, center = true);
-    // USB-C in the bottom end face
-    translate([-len/2 - 1, -usbc_w/2, -usbc_h/2]) cube([wall + 4, usbc_w, usbc_h]);
-    // side button
+    // USB-C through the +y side wall at the XIAO (option A)
+    translate([len/2 - usb_from_top - usbc_w/2, wid/2 - wall - 2, -usbc_h/2]) cube([usbc_w, wall + 4, usbc_h]);
+    // side button (+y wall)
     translate([btn_x, wid/2 - wall - 1, 0]) rotate([-90, 0, 0]) cylinder(d = btn_d, h = wall + 3);
+    // slide switch slot (-y wall)
+    translate([len/2 - sw_from_top - sw_l/2, -wid/2 - 2, -sw_w/2]) cube([sw_l, wall + 4, sw_w]);
+    // OLED window on the back of the tip
+    translate([len/2 - oled_from_top - oled_l/2, -oled_w/2, -head_thick/2 - 1]) cube([oled_l, oled_w, wall + 2]);
 }
 
 module body() {
@@ -143,23 +156,27 @@ haptic_d = 10; haptic_t = 2.7;             // coin vibration motor
 module component_blocks() {
     // battery fills the bottom half
     color([1.0, 0.55, 0.1, 0.95])
-        translate([-len/2 + r_bot/2 + bat_l/2, 0, 0])
+        translate([-len/2 + wall + fit + bat_l/2, 0, 0])
             cube([bat_l, bat_w, bat_t], center = true);
-    // GPS alone in the narrow tip - clearest sky view, fits the taper
+    // carrier PCB (0.8 mm) in the head, x = +11 .. tip; GPS on its top face in the tip (board x = 38.5)
+    color([0.1, 0.5, 0.2, 0.95])
+        translate([len/2 - 20.4, 0, 0.4]) cube([38.8, 24, 0.8], center = true);
     color([0.2, 0.8, 0.4, 0.95])
-        translate([len/2 - 5 - gps_l/2, 0, 0])
-            cube([gps_l, gps_w, gps_t], center = true);
+        translate([38.5 - 51 + len/2 - 0, 0, 0.8 + gps_t/2])
+            cube([gps_w, gps_l, gps_t], center = true);
     // camera just below the GPS, lens to the front face
     color([0.3, 0.6, 1.0, 0.95])
         translate([cam_x, 0, thick/2 - wall - cam_t/2])
             cube([cam_l, cam_w, cam_t], center = true);
     // XIAO under the camera zone, IMU stacked beneath it
+    // XIAO on the top face at board x = 20.5, 21 mm across the board (USB-C at the +y wall); the LSM6DS3 IMU
+    // is a 3 x 2.5 mm chip on the bottom face under the GPS zone (board x = 37)
     color([0.9, 0.2, 0.5, 0.95])
-        translate([len/2 - cam_from_top - mcu_l/2 + 2, 0, -mcu_t/2])
-            cube([mcu_l, mcu_w, mcu_t], center = true);
+        translate([20.5, 0, 0.8 + mcu_t/2])
+            cube([mcu_w, mcu_l, mcu_t], center = true);
     color([0.7, 0.4, 1.0, 0.95])
-        translate([len/2 - cam_from_top - imu_l/2 + 2, 0, -mcu_t - imu_t/2 - 0.4])
-            cube([imu_l, imu_w, imu_t], center = true);
+        translate([37, 0, -imu_t/2 - 0.5])
+            cube([3, 2.5, 1], center = true);
     // haptic coin on the battery shoulder
     color([0.5, 0.5, 0.5, 0.95])
         translate([-len/2 + r_bot/2 + bat_l + 4, wid/2 - wall - haptic_d/2 - 1, 0])
