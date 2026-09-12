@@ -124,7 +124,10 @@ module no_video_2d() {
         }
     }
 }
-pm_x    = cam_x - 12;      // the pair sits below the lens, on the front
+// cam_x is defined further down (line ~163), and OpenSCAD evaluates top-level assignments in
+// order, so referring to it here silently yielded undef and a "Ignoring unknown variable"
+// warning: the marks were NOT placed below the lens. Compute it from the same source instead.
+pm_x    = (len/2 - cam_from_top) - 12;   // the pair sits below the lens, on the front
 pm_cut  = 0.45;            // the dome is planed this deep so both marks cut evenly
 pm_pad_l = pm_d + 3;
 pm_pad_w = 2*pm_d + 6;
