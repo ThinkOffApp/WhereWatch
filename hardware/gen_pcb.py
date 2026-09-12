@@ -96,6 +96,9 @@ PLACE = {
     # BOTTOM face, tip band: low parts only (3.6 mm of room under the board there)
     'SW1': (38.5, -6.0, 0, B),     # holes sit in the gap between the GPS module's two pad columns     # MSK-12C02 slide switch, actuator through the -y wall
     'U2': (37.0, 0.0, 0, B),       # LSM6DS3TR-C IMU
+    # R6 and R3 sit under the XIAO pads they serve: packed at the board edge the router could not reach them
+    'R6': (20.4, 0.3, 90, B),      # VBAT divider, under U1 pad 23
+    'R3': (16.8, 0.7, 90, B),      # vibration gate resistor, under U1 pad 4
     'J3': (44.3, 0.0, 0, B),       # u.FL for the external GNSS antenna, under the module's tip
     'J6': (34.0, 5.4, 0, B),       # OLED tail connector (1 mm JST SH)
 }

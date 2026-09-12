@@ -145,7 +145,7 @@
   )
   (placement
     (component "TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm"
-      (place U4 26692.5 -2250 back 180 (PN "TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm"))
+      (place U4 26942.5 -2250 back 180 (PN "TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm"))
     )
     (component "ATGM336H-5N31"
       (place U3 41989.25 0 front 90 (PN "GPSM-SMD_ATGM336H-TR"))
@@ -163,17 +163,19 @@
       (place SW1 41700 5403.5 back 180 (PN "SW-TH_MSK12C02"))
     )
     (component R_0402_1005Metric
-      (place R11 42500 -8250 back 180 (PN R_0402_1005Metric))
-      (place R10 34750 8750 back 180 (PN R_0402_1005Metric))
-      (place R9 42500 -7000 back 180 (PN R_0402_1005Metric))
-      (place R8 34750 7500 back 180 (PN R_0402_1005Metric))
-      (place R7 34750 6250 back 180 (PN R_0402_1005Metric))
-      (place R6 15500 11750 back 180 (PN R_0402_1005Metric))
+      (place R11 42500 -7000 back 180 (PN R_0402_1005Metric))
+      (place R10 34750 7500 back 180 (PN R_0402_1005Metric))
+      (place R9 34750 6250 back 180 (PN R_0402_1005Metric))
+      (place R8 17500 11750 back 180 (PN R_0402_1005Metric))
+      (place R7 17500 -11750 back 180 (PN R_0402_1005Metric))
       (place R5 34750 5000 back 180 (PN R_0402_1005Metric))
       (place R4 34250 -9500 back 180 (PN R_0402_1005Metric))
-      (place R3 15500 -11750 back 180 (PN R_0402_1005Metric))
-      (place R2 30250 -4000 back 180 (PN R_0402_1005Metric))
+      (place R2 30500 -4000 back 180 (PN R_0402_1005Metric))
       (place R1 43500 2000 back 180 (PN R_0402_1005Metric))
+    )
+    (component R_0402_1005Metric::1
+      (place R6 23599.999 -300 back 270 (PN R_0402_1005Metric))
+      (place R3 20000 -700 back 270 (PN R_0402_1005Metric))
     )
     (component "SOT-23"
       (place Q3 35500 -7250 front -0 (PN "SOT-23"))
@@ -199,13 +201,13 @@
     )
     (component C_0603_1608Metric
       (place C6 35250 3500 back 180 (PN C_0603_1608Metric))
-      (place C2 30750 -2500 back 180 (PN C_0603_1608Metric))
-      (place C1 30750 -500 back 180 (PN C_0603_1608Metric))
+      (place C2 31000 -2500 back 180 (PN C_0603_1608Metric))
+      (place C1 31000 -500 back 180 (PN C_0603_1608Metric))
     )
     (component C_0402_1005Metric
-      (place C5 43500 -1250 back 180 (PN C_0402_1005Metric))
-      (place C4 17750 -11750 back 180 (PN C_0402_1005Metric))
-      (place C3 43500 0 back 180 (PN C_0402_1005Metric))
+      (place C5 43500 0 back 180 (PN C_0402_1005Metric))
+      (place C4 42500 -8250 back 180 (PN C_0402_1005Metric))
+      (place C3 34750 8750 back 180 (PN C_0402_1005Metric))
     )
   )
   (library
@@ -5062,6 +5064,14 @@
       (outline (path signal 120  -153.641 380  153.641 380))
       (outline (path signal 120  -153.641 -380  153.641 -380))
       (outline (path signal 100  -525 270  525 270  525 -270  -525 -270  -525 270))
+      (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 1 -510 0)
+      (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 2 510 0)
+    )
+    (image R_0402_1005Metric::1
+      (outline (polygon signal 0  925 465  925 -465  -925 -465  -925 465))
+      (outline (path signal 120  -153.641 380  153.641 380))
+      (outline (path signal 120  -153.641 -380  153.641 -380))
+      (outline (path signal 100  -525 270  -525 -270  525 -270  525 270  -525 270))
       (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 1 -510 0)
       (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 2 510 0)
     )
