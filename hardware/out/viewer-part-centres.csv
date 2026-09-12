@@ -1,4 +1,4 @@
-ref,body_centre_x,body_centre_y,body_w,body_h,rotation_deg_ALREADY_APPLIED_TO_body_w_h,side,pad_bbox_cx,pad_bbox_cy,pad_centroid_cx,pad_centroid_cy,stored_origin_x,stored_origin_y
+ref,courtyard_centre_x,courtyard_centre_y,courtyard_w_NOT_body,courtyard_h_NOT_body,rotation_deg_ALREADY_APPLIED_TO_courtyard_w_h,side,pad_bbox_cx,pad_bbox_cy,pad_centroid_cx,pad_centroid_cy,stored_origin_x,stored_origin_y
 C1,31.00,0.50,3.05,1.55,0,bottom,31.00,0.50,31.00,0.50,31.00,0.50
 C2,31.00,2.50,3.05,1.55,0,bottom,31.00,2.50,31.00,2.50,31.00,2.50
 C3,34.75,-7.50,1.91,1.01,0,bottom,34.75,-7.50,34.75,-7.50,34.75,-7.50
