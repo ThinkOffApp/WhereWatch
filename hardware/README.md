@@ -41,9 +41,9 @@
 | 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 1 M Q1 gate pull-up (4 µA on), 10 k + 100 k on the VBUS sense, 100 k on the wake line | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
-1. GNSS antenna: **decided v0.2, review it:** active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
+1. GNSS antenna: **CONFIRMED by Petrus 2026-09-15 18:11Z: active ceramic patch.** (was: decided v0.2, review it:) active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
 2. Speaker: size and placement (15 mm 4 Ω candidate).
-3. OLED on the carrier or on the case lid with a 4-wire lead.
+3. **DECIDED by Petrus 2026-09-15 18:11Z ("Yes can have the tiny oled and ceramic antenna sounds good"): OLED on the carrier.** BOM row 8 becomes a JLCPCB-placeable part (bare 0.42" 72x40 panel + FPC connector, or a module with a placeable header); claudemm picks the LCSC numbers, layout may start.
 4. Outline: teardrop from `cad/pendant.scad`, 1.0 mm board.
 5. **GNSS gating (decided in v0.1, review it):** the module's ON/OFF pin (active-low shutdown) is driven from D2 instead of an external high-side MOSFET switch, and VBAT stays on 3V3 (10 µA) so every wake is a hot start (≤1 s, not 35 s). The manual does not state the shutdown current; if the bench shows more than tens of µA, the AO3401A high-side switch comes back.
 6. **Speaker vs microSD:** the I2S amp needs three GPIOs and the only free ones are D8–D10, which the Sense board's SD slot also uses. Proposal: no SD in the pendant (the base station stores everything), amp on D8–D10. Alternative: drop the speaker (the pendant vibrates and shows text; the base station speaks).
