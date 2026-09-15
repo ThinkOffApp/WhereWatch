@@ -35,9 +35,9 @@
 | 10 | power switch | MSK-12C02, **as a gate control only** (rated 50 mA, codexmb second pass): common to GND, "on" throw grounds Q1's gate; off without USB = zero drain | C431540 | extended |
 | 11 | button | TS-1187A-B-A-B | C318884 | basic |
 | 13 | passives | 0402/0603 R, C | basic | basic |
-| 14 | GNSS antenna connector | Hirose U.FL-R-SMT-1 (or equivalent) | tbd at review | extended |
-| 15 | antenna bias | 47 nH 0402 inductor, VCC_RF → antenna line (ATGM336H manual, active-antenna circuit) | basic | basic |
-| 16 | antenna | small **active** ceramic GNSS patch with u.FL, 3.3 V (choose at review; the passive patch in the parts box stays with the bench breakout) | tbd | — |
+| 14 | GNSS antenna connector | **DELETED 2026-09-15** (Petrus: ready parts → placed passive patch, no u.FL) | — | — |
+| 15 | antenna bias | **DELETED 2026-09-15** (no active antenna, no VCC_RF feed; use the ATGM336H manual's passive-antenna circuit: patch → RF_IN matching per manual) | — | — |
+| 16 | antenna | **PULSE W3225** passive ceramic GNSS patch, 25 mm, 4 mm high, 3 dBi, 50 Ω, SMD (decided 2026-09-15: "we go with ready parts") | C7414031 (10 in stock 15.9., $4.89) | extended |
 | 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 1 M Q1 gate pull-up (4 µA on), 10 k + 100 k on the VBUS sense, 100 k on the wake line | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
