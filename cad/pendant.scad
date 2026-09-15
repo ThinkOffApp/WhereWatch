@@ -28,7 +28,7 @@ bat_l = 60;     // cell length
 // petrus, Aug 16: "paksuus hyvin lähellä akun paksuutta" - faces thinned to
 // 1.2 mm so the pendant carries only ~2.4 mm of structure over the cell
 // (654060 -> 9.4 mm total; 603048 preset -> 8.9 mm).
-wall = 1.2;
+wall = 1.5;   // JLC3DP rule: wall thickness > 1.2 mm (was 1.2, petrus 15 Sep 2026)
 fit  = 0.4;     // clearance around the cell
 
 /* [Outer size - derived from the cell, so the shape always fits] */
