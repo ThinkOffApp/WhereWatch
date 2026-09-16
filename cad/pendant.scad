@@ -82,7 +82,7 @@ lan_d        = 3.5;    // lanyard cord hole through the top tip
 // emoji SVG is imported here instead - same recess, same depth.
 engrave_text  = "petrus";
 engrave_size  = 9;      // mm cap height
-engrave_depth = 0.4;    // mm recess at the shallow end; the back tapers, so the letters deepen to ~0.9 toward the head (skin stays >= 1.0)
+engrave_depth = 0.45;   // mm recess, constant along the text because the cut follows the back's taper (recess_on_back); skin = wall - 0.45
 engrave_font  = "DejaVu Sans:style=Bold";
 // Optional emoji SVG engraved above the text (set to a file to enable):
 engrave_svg   = "";     // e.g. "keys.svg"
@@ -189,16 +189,24 @@ module engrave_pad() {
         offset(r = 5) square([pad_l - 10, pad_w - 10], center = true);
 }
 
+// The back is a taper from -thick/2 at the bottom spheres (x = -len/2 + r_bot) to -head_thick/2 at the tip sphere
+// (x = len/2 - tip_d/2). A recess cut from one fixed height therefore deepens along x; with a 1.5 mm wall the
+// letters must follow the slope instead. back_z(x) is the centreline surface, tilt its angle.
+back_span = (len/2 - tip_d/2) - (-len/2 + r_bot);
+function back_z(x) = -thick/2 - (x - (-len/2 + r_bot)) * ((head_thick - thick)/2) / back_span;
+back_tilt = atan(((head_thick - thick)/2) / back_span);   // ~1.0 deg, +x goes deeper (more negative)
+module recess_on_back(x, depth) {
+    // children(): a 2D shape; cut depth into the back surface at x, floor parallel to the local surface
+    translate([x, 0, back_z(x)]) rotate([0, back_tilt, 0]) translate([0, 0, -3])
+        mirror([0, 1, 0]) linear_extrude(height = 3 + depth) children();
+}
 module engraving() {
     if (engrave_text != "")
-        translate([pad_x - 7, 0, pad_z - engrave_depth - 3])          // start 3 mm below the surface: the back tapers, and a prism
-            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2 + 3)   // that starts inside the wall leaves a sealed void, not a recess
-                text(engrave_text, size = engrave_size, font = engrave_font,
-                     halign = "center", valign = "center");
+        recess_on_back(pad_x - 7, engrave_depth)
+            text(engrave_text, size = engrave_size, font = engrave_font, halign = "center", valign = "center");
     if (engrave_svg != "")
-        translate([pad_x + 13, 0, pad_z - engrave_depth - 3])
-            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2 + 3)
-                resize([emoji_size, emoji_size]) import(engrave_svg, center = true);
+        recess_on_back(pad_x + 13, engrave_depth)
+            resize([emoji_size, emoji_size]) import(engrave_svg, center = true);
 }
 
 module personalise() { if (pad_flat) engrave_pad(); engraving(); }
