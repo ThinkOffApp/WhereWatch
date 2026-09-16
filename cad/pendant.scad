@@ -28,7 +28,7 @@ bat_l = 60;     // cell length
 // petrus, Aug 16: "paksuus hyvin lähellä akun paksuutta" - faces thinned to
 // 1.2 mm so the pendant carries only ~2.4 mm of structure over the cell
 // (654060 -> 9.4 mm total; 603048 preset -> 8.9 mm).
-wall = 1.2;
+wall = 1.5;   // JLC3DP rule: wall > 1.2 mm (was 1.2)
 fit  = 0.4;     // clearance around the cell
 
 /* [Outer size - derived from the cell, so the shape always fits] */
@@ -295,7 +295,7 @@ if (shape_only) {
  */
 part      = "both";
 lip_h     = 2.0;    // how deep the lip reaches into the other half
-lip_t     = wall/2; // lip wall, half the shell so it nests
+lip_t     = 0.8;    // lip wall; JLC3DP thinnest part >= 0.8 mm (wall/2 = 0.75 fails it)
 seam_z    = 0;      // split plane, the pendant's mid-thickness
 seam_gap  = 0.15;   // print clearance between the halves
 
