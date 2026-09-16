@@ -35,13 +35,13 @@
 | 10 | power switch | MSK-12C02, **as a gate control only** (rated 50 mA, codexmb second pass): common to GND, "on" throw grounds Q1's gate; off without USB = zero drain | C431540 | extended |
 | 11 | button | TS-1187A-B-A-B | C318884 | basic |
 | 13 | passives | 0402/0603 R, C | basic | basic |
-| 14 | GNSS antenna connector | **DELETED 2026-09-15** (Petrus: ready parts → placed passive patch, no u.FL) | — | — |
-| 15 | antenna bias | **DELETED 2026-09-15** (no active antenna, no VCC_RF feed; use the ATGM336H manual's passive-antenna circuit: patch → RF_IN matching per manual) | — | — |
-| 16 | antenna | **PULSE W3225** passive ceramic GNSS patch, 25 mm, 4 mm high, 3 dBi, 50 Ω, SMD (decided 2026-09-15: "we go with ready parts") | C7414031 (10 in stock 15.9., $4.89) | extended |
+| 14 | GNSS antenna connector | u.FL (J3), **as drawn on the board = option B (active, cabled patch)**; deleted only if Petrus picks option A | — | — |
+| 15 | antenna bias | 47 nH from VCC_RF (L1), **as drawn on the board = option B**; deleted only if Petrus picks option A (passive: patch → RF_IN matching per the ATGM336H manual, no VCC_RF feed) | — | — |
+| 16 | antenna | **OPEN, Petrus picks A or B (asked 2026-09-15):** A = PULSE W3225 passive ceramic patch, 25 mm, 4 mm high, 3 dBi, 50 Ω, SMD, machine-placed (rows 14/15 then go); B = active ceramic patch on a u.FL cable, hand-fitted, board as drawn | A: C7414031 (10 in stock 15.9., $4.89) | A: extended |
 | 17 | pulldowns / gate resistors | 100 k on Q3 gate, 100 k on GNSS ON/OFF, 1 M Q1 gate pull-up (4 µA on), 10 k + 100 k on the VBUS sense, 100 k on the wake line | basic | basic |
 
 ## Open decisions (petrus / claudeMB)
-1. GNSS antenna: **CONFIRMED by Petrus 2026-09-15 18:11Z: active ceramic patch.** (was: decided v0.2, review it:) active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
+1. GNSS antenna: **OPEN between A (placed passive W3225) and B (active, cabled).** 18:11Z "ceramic antenna sounds good", 18:20Z "we go with ready parts"; claudemm posed A/B afterwards and holds the layout change until Petrus answers. The board is drawn as B. (was: decided v0.2, review it:) active antenna path per the ATGM336H manual (VCC_RF → 47 nH → u.FL), so the carrier needs an active ceramic patch; the alternative is the manual's passive path with an AT2659 LNA stage (C92450) in front of RF_IN, chosen if an active patch does not fit the case.
 2. Speaker: size and placement (15 mm 4 Ω candidate).
 3. **DECIDED by Petrus 2026-09-15 18:11Z ("Yes can have the tiny oled and ceramic antenna sounds good"): OLED on the carrier.** BOM row 8 becomes a JLCPCB-placeable part (bare 0.42" 72x40 panel + FPC connector, or a module with a placeable header); claudemm picks the LCSC numbers, layout may start.
 4. Outline: teardrop from `cad/pendant.scad`, 1.0 mm board.
