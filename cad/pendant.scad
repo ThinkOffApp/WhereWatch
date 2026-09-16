@@ -82,7 +82,7 @@ lan_d        = 3.5;    // lanyard cord hole through the top tip
 // emoji SVG is imported here instead - same recess, same depth.
 engrave_text  = "petrus";
 engrave_size  = 9;      // mm cap height
-engrave_depth = 0.8;    // mm recess
+engrave_depth = 0.4;    // mm recess at the shallow end; the back tapers, so the letters deepen to ~0.9 toward the head (skin stays >= 1.0)
 engrave_font  = "DejaVu Sans:style=Bold";
 // Optional emoji SVG engraved above the text (set to a file to enable):
 engrave_svg   = "";     // e.g. "keys.svg"
@@ -102,7 +102,7 @@ pm_stroke     = 0.9;    // ring and bar thickness
 
 module ring_and_bar() {
     difference() { circle(d = pm_d); circle(d = pm_d - 2*pm_stroke); }
-    rotate(-45) square([pm_d * 0.92, pm_stroke], center = true);
+    rotate(-45) square([pm_d, pm_stroke], center = true);   // full diameter: 0.92 left 0.06 mm slivers between bar and ring
 }
 module no_faces_2d() {
     ring_and_bar();
@@ -173,7 +173,8 @@ btn_x = len/2 - btn_from_top;
 pad_x   = -len/2 + 30;   // pad centre along the long axis
 pad_l   = 46;            // pad length
 pad_w   = 22;            // pad width
-pad_cut = 0.5;           // how far the flat is planed into the dome
+pad_cut = 0.0;           // was 0.5: the flat was referenced to the thinnest point of the shell and planed 0.9 mm off further up the taper, leaving 0.2 mm under the letters
+pad_flat = false;        // keep the dome; JLC3DP thinnest part >= 0.8 mm
 pad_z   = -thick/2 + pad_cut;   // resulting flat face height
 
 module engrave_pad() {
@@ -184,24 +185,24 @@ module engrave_pad() {
 
 module engraving() {
     if (engrave_text != "")
-        translate([pad_x - 7, 0, pad_z - engrave_depth])
-            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2)
+        translate([pad_x - 7, 0, pad_z - engrave_depth - 3])          // start 3 mm below the surface: the back tapers, and a prism
+            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2 + 3)   // that starts inside the wall leaves a sealed void, not a recess
                 text(engrave_text, size = engrave_size, font = engrave_font,
                      halign = "center", valign = "center");
     if (engrave_svg != "")
-        translate([pad_x + 13, 0, pad_z - engrave_depth])
-            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2)
+        translate([pad_x + 13, 0, pad_z - engrave_depth - 3])
+            mirror([0, 1, 0]) linear_extrude(height = engrave_depth * 2 + 3)
                 resize([emoji_size, emoji_size]) import(engrave_svg, center = true);
 }
 
-module personalise() { engrave_pad(); engraving(); }
+module personalise() { if (pad_flat) engrave_pad(); engraving(); }
 
 module openings() {
     if (privacy_marks) privacy_engraving();
     // camera lens (front, +z)
-    translate([cam_x, 0, 0]) cylinder(d = cam_d, h = thick + 2, center = true);
+    translate([cam_x, 0, 0]) cylinder(d = cam_d, h = head_thick + 2, center = true);   // head_thick, not thick: with thick+2 the lens was capped by a 0.13 mm skin (found 2026-09-16)
     // lanyard cord hole through the top tip
-    translate([len/2 - 6, 0, 0]) cylinder(d = lan_d, h = thick + 2, center = true);
+    translate([len/2 - 6, 0, 0]) cylinder(d = lan_d, h = head_thick + 2, center = true);   // same fix: the cord hole did not go through
     // USB-C through the +y side wall at the XIAO (option A)
     translate([len/2 - usb_from_top - usbc_w/2, wid/2 - wall - 2, -usbc_h/2]) cube([usbc_w, wall + 4, usbc_h]);
     // side button (+y wall)
@@ -281,7 +282,7 @@ if (shape_only) {
     difference() {
         pebble_solid();
         translate([cam_x, 0, thick/2 - 1.2]) cylinder(d = cam_d, h = 3);
-        translate([len/2 - 6, 0, 0]) cylinder(d = lan_d, h = thick + 2, center = true);
+        translate([len/2 - 6, 0, 0]) cylinder(d = lan_d, h = head_thick + 2, center = true);   // same fix: the cord hole did not go through
         personalise();
     }
 } else body();
@@ -294,29 +295,34 @@ if (shape_only) {
  * Export:  openscad -o front.stl -D 'part="front"' pendant.scad
  */
 part      = "both";
-lip_h     = 2.0;    // how deep the lip reaches into the other half
-lip_t     = 0.8;    // lip wall; JLC3DP thinnest part >= 0.8 mm (wall/2 = 0.75 fails it)
+lip_h     = 1.5;    // how deep the lip reaches into the other half (below the seam, into the back)
+lip_x_max = -47.5;  // the lip only exists beyond the cell's lower edge (-46.2): the cell (0.2 mm side clearance) and the 24 mm carrier leave no room for an inner lip anywhere else
+lip_t     = 1.0;    // lip thickness; JLC3DP thinnest part >= 0.8 mm (wall/2 = 0.75 failed it)
+lip_in    = 0.3;    // the lip stands this far inside the cavity wall at the seam, so the wall's curve below the seam does not pinch it
+lip_floor = 0.85;   // the slot never comes closer than this to the back's outer surface
 seam_z    = 0;      // split plane, the pendant's mid-thickness
 seam_gap  = 0.15;   // print clearance between the halves
 
+module cavity_outline_2d() { projection(cut = true) pebble_solid(inset = wall); }   // the cavity's section at the seam
+module seam_band_2d() {
+    // a vertical band that follows the seam outline, lip_in inside the cavity wall, lip_t thick
+    difference() { offset(delta = -lip_in) cavity_outline_2d(); offset(delta = -lip_in - lip_t) cavity_outline_2d(); }
+}
+module lip_zone(extra = 0) { translate([-len, -wid, -thick]) cube([lip_x_max + len + extra, 2*wid, 2*thick]); }
 module seam_lip() {
-    // a band that follows the inner wall, standing up from the seam into the front half
+    // on the FRONT half, hanging below the seam into the back half; kept >= lip_floor from the outer surface
     intersection() {
-        difference() {
-            pebble_solid(inset = wall);                 // inner surface
-            pebble_solid(inset = wall + lip_t);         // minus a thinner shell = a band
-        }
-        translate([-len, -wid, seam_z]) cube([2*len, 2*wid, lip_h]);
+        translate([0, 0, seam_z - lip_h]) linear_extrude(height = lip_h) seam_band_2d();
+        pebble_solid(inset = lip_floor + seam_gap);
+        lip_zone();
     }
 }
 module seam_slot() {
-    // the same band, grown by the print clearance, removed from the back half
+    // the same band grown by the print clearance, removed from the BACK half; the back wall keeps >= lip_floor
     intersection() {
-        difference() {
-            pebble_solid(inset = wall - seam_gap);
-            pebble_solid(inset = wall + lip_t + seam_gap);
-        }
-        translate([-len, -wid, seam_z - 0.01]) cube([2*len, 2*wid, lip_h + 0.02]);
+        translate([0, 0, seam_z - lip_h - seam_gap]) linear_extrude(height = lip_h + seam_gap + 0.01) offset(delta = seam_gap) seam_band_2d();   // seam_gap under the lip too
+        pebble_solid(inset = lip_floor);
+        lip_zone(seam_gap);
     }
 }
 module half(front = true) {
