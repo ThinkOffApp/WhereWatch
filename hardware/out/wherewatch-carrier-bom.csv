@@ -2,12 +2,12 @@ Comment,Designator,Footprint,LCSC Part #,Manufacturer Part,JLC tier,Side,Stock 2
 10u,"C1,C2,C6",C_0603_1608Metric,C19702,Samsung CL10A106KP8NNNC 10uF 0603 10V X5R,Basic,bottom,13135582,0.0319,0.478,
 100n,"C3,C4,C5",C_0402_1005Metric,C1525,Samsung CL05B104KO5NNNC 100nF 0402 16V X7R,Basic,bottom,31172376,0.0045,0.067,
 1N4148W,D1,D_SOD-123,C81598,1N4148W,Basic,bottom,3183199,0.0126,0.063,
-LiPo JST PH,J1,JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal,C295747,JST S2B-PH-SM4-TB(LF)(SN),Extended,bottom,23060,0.2400,1.200,"replaces C173752, which was the through-hole PH"
+LiPo JST PH,J1,JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal,C160402,JST SM02B-SRSS-TB(LF)(SN),Extended,bottom,60597,0.1320,0.660,"decision 7 (petrus 2026-09-16 07:25Z): JST SH 1.0 mm, 2.9 mm tall, replaces the 5.5 mm PH; leads pre-terminated"
 u.FL GNSS antenna,J3,U.FL_Hirose_U.FL-R-SMT-1_Vertical,C88374,Hirose U.FL-R-SMT-1(80),Extended,bottom,109340,0.1063,0.532,
-vibration motor,J4,JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal,C295747,JST S2B-PH-SM4-TB(LF)(SN),Extended,bottom,23060,0.2400,1.200,"replaces C173752, which was the through-hole PH"
-speaker 4R,J5,JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal,C295747,JST S2B-PH-SM4-TB(LF)(SN),Extended,bottom,23060,0.2400,1.200,"replaces C173752, which was the through-hole PH"
-OLED tail pads 1x04 1.0mm (DNP),J6,OLED_Pads_1x04_P1.00mm,,,DNP,top,55974,,,four solder pads on the top for the 0.42in OLED flex tail; fitted by hand only if a screen is wanted (2026-09-16)
-47nH,L1,L_0402_1005Metric,C22334,Murata LQW15AN47NG00D 47nH 0402,Extended,bottom,82539,0.0637,0.319,"wire-wound RF choke family, highest stock of the 47nH options"
+vibration motor,J4,JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal,C160402,JST SM02B-SRSS-TB(LF)(SN),Extended,bottom,60597,0.1320,0.660,"decision 7 (petrus 2026-09-16 07:25Z): JST SH 1.0 mm, 2.9 mm tall, replaces the 5.5 mm PH; leads pre-terminated"
+speaker 4R,J5,JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal,C160402,JST SM02B-SRSS-TB(LF)(SN),Extended,bottom,60597,0.1320,0.660,"decision 7 (petrus 2026-09-16 07:25Z): JST SH 1.0 mm, 2.9 mm tall, replaces the 5.5 mm PH; leads pre-terminated"
+OLED 0.42in I2C,J6,JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal,C160404,JST SM04B-SRSS-TB(LF)(SN),Extended,bottom,55974,,,v0.5 two-sided: connector back on the bottom; screen still DNP unless chosen
+47nH,L1,L_0402_1005Metric,C22334,Murata LQW15AN47NG00D 47nH 0402,Extended,top,82539,0.0637,0.319,"wire-wound RF choke family, highest stock of the 47nH options"
 AO3401A,Q1,SOT-23,C15127,AO3401A,Basic,bottom,470624,0.0942,0.471,
 2N7002,Q2,SOT-23,C8545,2N7002,Basic,bottom,1840489,0.0163,0.081,
 AO3400A,Q3,SOT-23,C20917,AO3400A,Basic,bottom,811548,0.0846,0.423,
@@ -18,7 +18,7 @@ AO3400A,Q3,SOT-23,C20917,AO3400A,Basic,bottom,811548,0.0846,0.423,
 100k,"R6,R7,R8,R9,R10,R11",R_0402_1005Metric,C25741,UNI-ROYAL 0402WGF1003TCE 100k 1%,Basic,bottom,11302977,0.0025,0.075,
 MSK-12C02,SW1,MSK-12C02,C431540,MSK12C02,Extended,bottom,199344,0.0567,0.283,
 TS-1187A,SW2,SW_SPST_TL3342,C318884,TS-1187A,Basic,bottom,714611,0.0205,0.103,
-XIAO ESP32S3 Sense,U1,XIAO-ESP32-S3-SMD,C9900154951,Seeed XIAO ESP32S3,HAND,top,0,0.0396,0.198,"JLC HOLDS NO STOCK. Every XIAO entry in their library is a JLCPCB Assembly consign part, 0 stock, 439 minimum. JLC cannot place this part."
+XIAO ESP32S3 Sense,U1,XIAO-ESP32-S3-SMD,C9900154951,Seeed XIAO ESP32S3,CONSIGN,top,0,0.0396,0.198,Seeed SKU 113991115; JLC = consign only; Seeed Fusion places it
 LSM6DS3TR-C,U2,LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y,C967633,ST LSM6DS3TR-C,Extended,bottom,26380,1.5161,7.580,
-ATGM336H-5N31,U3,ATGM336H-5N31,C90770,ZHONGKEWEI ATGM336H-5N31,HAND,top,12319,3.2372,16.186,"castellated module, hand-soldered on the top with the XIAO; JLC Economic assembly is single-sided (2026-09-16); stock 12,319 at JLC, buy 5 from LCSC/JLC parts"
+ATGM336H-5N31,U3,ATGM336H-5N31,C90770,ZHONGKEWEI ATGM336H-5N31,Extended,top,12319,3.2372,16.186,v0.5: placed by the assembler (two-sided); Seeed SKU via LCSC link
 MAX98357A,U4,TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm,C910544,Maxim MAX98357AETE+T,Extended,bottom,14392,1.3144,6.572,

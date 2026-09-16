@@ -87,7 +87,7 @@ PLACE = {
     # different x, which is what lets the head stay at 13.
     'U1': (21.2, 0.0, 0, T),   # +0.7: pads 1-7 were touching the left board edge (grok's DRC read)       # XIAO ESP32S3 Sense, USB-C at the +y side wall
     'U3': (38.5, 0.0, 90, T),      # ATGM336H GPS module, patch to the sky, in the tip
-    'L1': (44.0, -3.6, 0, B),      # bias-T, now on the BOTTOM beside J3 (JLC Economic = single-sided assembly, 2026-09-16); was (46.2, 0, T)
+    'L1': (46.2, 0.0, 0, T),       # bias-T on the RF pad's side (top again: v0.5 is two-sided, Seeed Fusion places both faces, 2026-09-16)
     # BOTTOM face, middle band: the three JST PH (surface-mount variant), wires exiting toward the cell
     'J1': (16.0, -7.0, 0, B),      # LiPo. +-7.0 not +-5.8: the PH courtyard includes the wire exit and it
     'J5': (16.0,  7.0, 0, B),      # speaker (optional). reached over R3/R6, which sit pinned under U1's pads
@@ -100,7 +100,7 @@ PLACE = {
     'R6': (20.4, 0.3, 90, B),      # VBAT divider, under U1 pad 23
     'R3': (16.8, 0.7, 90, B),      # vibration gate resistor, under U1 pad 4
     'J3': (44.3, 0.0, 0, B),       # u.FL for the external GNSS antenna, under the module's tip
-    'J6': (33.5, 7.3, 0, T),       # OLED tail pads on the TOP, tip pocket above the GNSS module (was the SH connector on the bottom)
+    'J6': (34.0, 5.4, 0, B),       # OLED tail connector (1 mm JST SH) on the bottom again (v0.5, two-sided assembly)
 }
 SHIFT = X0 - 11.0                                   # the hand placements were laid out for X0 = 11.0
 PLACE = {r: (x + SHIFT, y, rot, side) for r, (x, y, rot, side) in PLACE.items()}
@@ -109,15 +109,16 @@ FP = {}   # ref -> lib:name, from the netlist
 # layout-side footprint substitutions (claudeMB 2026-09-12): the through-hole JST PH drills land under the
 # XIAO module's body, so the three battery/speaker/motor connectors use the surface-mount variant instead.
 SUBST = {'Connector_JST:JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal':
-         'Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal',
+         # v0.3 used the surface-mount PH (S2B-PH-SM4-TB); 2026-09-16 decision 7 (petrus): JST SH SM02B-SRSS-TB (C160402),
+         # 2.9 mm tall instead of 5.5, so the stack under the board fits the 8.2-8.5 mm case cavity.
+         'Connector_JST:JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal',
          # the 2.54 mm OLED header does not fit the tip; a 1 mm JST SH does, and the 0.42" panel comes on a
          # flexible tail anyway. Schematic side: J6 becomes SM04B-SRSS-TB (claudemm).
          'Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical':
-         'WhereWatch:OLED_Pads_1x04_P1.00mm'}   # the library header's courtyard is a 2.5 mm body; ours is pads + 0.25 (lib/WhereWatch.pretty)
-# 2026-09-16: J6 was the JST SH on the bottom. JLC Economic assembly is single-sided, and the bottom had no room for
-# the three parts coming down from the top (L1, Q3, D1), so J6 becomes four 1.0 mm solder pads on the TOP in the tip
-# pocket: hand-fitted only if a screen is ever wanted (the 0.42" module comes on a flex tail), DNP in the BOM.
-# Schematic side: the netlist still calls it JST SM04B-SRSS-TB (claudemm); the footprint is what JLC sees.
+         'Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal',
+         }   # SUBST is a single lookup on the netlist name: no chaining
+# v0.4 (2026-09-16, JLC Economic single-sided) had J6 as four solder pads on the top and L1/Q3/D1 on the bottom; v0.5 is
+# two-sided again for Seeed Fusion. The pad footprint lib/WhereWatch.pretty/OLED_Pads_1x04_P1.00mm stays available.
 
 # ---- netlist (kicad sexpr) ----
 def sexpr(text):
@@ -238,7 +239,7 @@ for ref in order:
     pts_a = anchor.get(ref) or [MM(30, 0)]
     ax = sum(p.x for p in pts_a) / len(pts_a) / 1e6; ay = sum(p.y for p in pts_a) / len(pts_a) / 1e6
     best = None
-    for side_try in (B,):           # bottom only: JLC Economic assembly places one side; the top carries just the hand-soldered XIAO and GNSS module (2026-09-16)
+    for side_try in (B, T):         # bottom first; v0.5 is two-sided again (Seeed Fusion places both faces)
         obst = placed if side_try == B else placed_top
         y = -13.0
         while y <= 13.0:
@@ -352,7 +353,8 @@ print(f'GND fanout vias: {fan}')
 # every fragment of the busy B.Cu pour something to reach through a stitching via.
 for layer in (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu):
     z = pcbnew.ZONE(board); z.SetLayer(layer); z.SetNet(netinfo['GND']); z.SetIsFilled(False)
-    z.SetLocalClearance(int(0.15e6)); z.SetMinThickness(int(0.25e6))
+    z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)   # drop unconnected pour slivers (DRC counted a corner island as unconnected, 2026-09-16)
+    z.SetLocalClearance(int(0.13e6)); z.SetMinThickness(int(0.15e6))   # 2026-09-16: 0.15/0.25 left C4's GND pad on an island between traces; the pour now threads 0.41 mm gaps
     z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)   # an unconnectable sliver is not a net, drop it
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)   # solid pad connections: thermal spokes starved on 0.15 mm rules
     ol = z.Outline(); ol.NewOutline()

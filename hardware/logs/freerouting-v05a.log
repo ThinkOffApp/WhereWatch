@@ -1,0 +1,20 @@
+2026-09-16 10:31:19.778 [main] INFO  Freerouting v1.9.0 (build-date: 2023-10-30)
+2026-09-16 10:31:19.827 [main] INFO  Settings were loaded from freerouting.json
+2026-09-16 10:31:20.854 [main] INFO  Opening 'out/wherewatch-carrier.dsn'...
+2026-09-16 10:31:21.358 [ForkJoinPool.commonPool-worker-1] INFO  New version available: v2.4.1
+2026-09-16 10:31:42.626 [Thread-28] INFO  Starting auto-routing...
+2026-09-16 10:31:51.385 [Thread-28] WARN  There were only 15.90 changes in the last 20 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:31:58.685 [Thread-28] WARN  There were only 11.85 changes in the last 40 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:06.122 [Thread-28] WARN  There were only 10.65 changes in the last 60 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:13.516 [Thread-28] WARN  There were only 10.07 changes in the last 80 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:20.709 [Thread-28] WARN  There were only 10.00 changes in the last 100 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:28.206 [Thread-28] WARN  There were only 10.00 changes in the last 120 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:35.435 [Thread-28] WARN  There were only 10.00 changes in the last 140 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:42.893 [Thread-28] WARN  There were only 10.00 changes in the last 160 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:49.997 [Thread-28] WARN  There were only 10.00 changes in the last 180 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:57.191 [Thread-28] WARN  There were only 10.00 changes in the last 200 passes, so it's very likely that autorouter can't improve the result much further. It is recommended to stop it and finish the board manually.
+2026-09-16 10:32:57.191 [Thread-28] WARN  There was so little change during the recent passes that autorouter will be stopped now.
+2026-09-16 10:32:57.192 [Thread-28] INFO  Auto-routing was completed in 1 minute(s) 14.56 seconds.
+2026-09-16 10:32:57.294 [Thread-28] INFO  Starting route optimization on 1 thread...
+2026-09-16 10:34:59.559 [Thread-28] INFO  Route optimization was completed in 2 minute(s) 2.27 seconds.
+2026-09-16 10:34:59.569 [Thread-28] INFO  Saving 'out/route-v05a.ses'...
