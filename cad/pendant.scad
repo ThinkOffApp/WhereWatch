@@ -149,18 +149,24 @@ module privacy_engraving() {
 $fn = 48;
 
 // ---- friendly pebble: big top dome hulled with two soft bottom corners ----
-module pebble_solid(inset = 0) {
+module pebble_core(inset) {
+    // the CAVITY hull: the outer primitives with every semi-axis reduced by inset (an inward offset, to first order)
     hw = wid/2 - inset;
     tt = thick - 2*inset;
     hull() {
-        // narrow round tip (top)
         translate([len/2 - tip_d/2, 0, 0])
-            scale([1, 1, (head_thick - 2*inset) / tip_d]) sphere(d = tip_d - 2*inset);
-        // wide bottom, rounded corners
+            scale([1, 1, (head_thick/2 - inset) / (tip_d/2 - inset)]) sphere(d = tip_d - 2*inset);   // semi-axes each minus inset
         for (y = [-1, 1])
             translate([-len/2 + r_bot + inset, y * (hw - r_bot + inset/2), 0])
-                scale([1, 1, tt / (2 * r_bot)]) sphere(r = r_bot - inset/2);
+                scale([1, 1, (thick/2 - inset) / (r_bot - inset/2)]) sphere(r = r_bot - inset/2);
     }
+}
+module pebble_solid(inset = 0) {
+    // TRUE uniform wall: every surface is the cavity hull grown by (wall - inset). A hull of shrunken spheres is
+    // not an offset surface (the top and bottom walls came out 2.1 mm for wall = 1.5); a Minkowski sum with a
+    // sphere is, and both shapes are convex so it is cheap.
+    if (inset >= wall) pebble_core(inset);
+    else minkowski() { pebble_core(wall); sphere(r = wall - inset, $fn = 24); }
 }
 
 cam_x = len/2 - cam_from_top;
