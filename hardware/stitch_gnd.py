@@ -24,9 +24,11 @@ def pad_gap(x, y, pd):
     lx, ly = abs(dx*ca - dy*sa), abs(dx*sa + dy*ca)
     return math.hypot(max(lx - sz.x/2e6, 0.0), max(ly - sz.y/2e6, 0.0))
 
-pads, vias, segs = [], [], []
+pads, vias, segs, keepouts = [], [], [], []
 for fp in board.GetFootprints():
     for pd in fp.Pads(): pads.append(pd)
+    for z in fp.Zones():                      # footprint rule areas (e.g. J3's top_keepout): no vias inside (2026-09-16)
+        if z.GetIsRuleArea() and z.GetDoNotAllowVias(): keepouts.append(z.Outline())
 for t in board.GetTracks():
     if t.Type() == pcbnew.PCB_VIA_T:
         p = t.GetPosition(); vias.append((p.x/1e6, p.y/1e6, 0.3, t.GetNetname()))
@@ -46,6 +48,9 @@ def inside(x, y, m=1.3):   # 0.8 left four vias inside the board-edge clearance 
     return abs(y) < half_width(x) - m
 
 def clear(x, y):
+    for ko in keepouts:
+        for ox, oy in ((0, 0), (0.35, 0), (-0.35, 0), (0, 0.35), (0, -0.35)):
+            if ko.PointInside(pcbnew.VECTOR2I(int((x + ox)*1e6), int((y + oy)*1e6))): return False
     for pd in pads:
         if pad_gap(x, y, pd) < VIA_D/2 + (0.05 if pd.GetNetname() == 'GND' else CLR): return False
     for px, py, r, n in vias:

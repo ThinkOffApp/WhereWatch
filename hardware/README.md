@@ -48,6 +48,28 @@
 5. **GNSS gating (decided in v0.1, review it):** the module's ON/OFF pin (active-low shutdown) is driven from D2 instead of an external high-side MOSFET switch, and VBAT stays on 3V3 (10 µA) so every wake is a hot start (≤1 s, not 35 s). The manual does not state the shutdown current; if the bench shows more than tens of µA, the AO3401A high-side switch comes back.
 6. **Speaker vs microSD:** the I2S amp needs three GPIOs and the only free ones are D8–D10, which the Sense board's SD slot also uses. Proposal: no SD in the pendant (the base station stores everything), amp on D8–D10. Alternative: drop the speaker (the pendant vibrates and shows text; the base station speaks).
 
+## Assembly plan v0.4: single-sided for JLCPCB Economic (2026-09-16, claudeMB)
+JLCPCB's assembly capabilities page (read 2026-09-16): **Economic PCBA = single-sided placement only**, 2/4/6 layers,
+single board from 10 x 10 mm, 2 to 50 pcs; **Standard PCBA does both sides but its single-board minimum is 70 x 70 mm**,
+so this 37.5 x 26.1 mm board can only be machine-assembled as a one-sided Economic order. Layout v0.4 therefore puts
+every JLC-placed part on the **bottom** (30 parts, 20 BOM lines, 12 Basic + 8 Extended) and leaves the **top** to the two
+castellated modules that are hand-soldered at home, U1 (XIAO, JLC consign, no stock) and U3 (ATGM336H-5N31), plus J6.
+- L1, Q3, D1 moved from the top to the bottom (`gen_pcb.py`: L1 placed beside J3, the packer is bottom-only).
+- J6 is no longer the JST SH connector: four 1.0 mm solder pads on the top in the tip pocket (`lib/WhereWatch.pretty/
+  OLED_Pads_1x04_P1.00mm`, courtyard = pads + 0.25 mm), DNP, hand-fitted only if a 0.42" OLED flex tail is ever wanted.
+  The bottom had no room for the three moved parts with the SH connector there. Schematic still names the SH part; the
+  footprint is what JLC sees. The case CAD's OLED window stays off.
+- Routed with freerouting 1.9.0 (`logs/freerouting-single.log`, `out/route-single.ses`): all signal nets complete;
+  `close_nets.py` is NOT needed for this route (it was for the v0.3 leftovers and shorts nets if run again).
+- `stitch_gnd.py` now keeps vias out of footprint keepout areas (J3's u.FL top keepout).
+- DRC (KiCad 10.0.6, errors): 0 violations, 0 unconnected. 328 tracks, 113 vias, 4 layers.
+- Order files: `out/wherewatch-carrier-gerbers-single.zip` (15 Gerber/drill files), `out/wherewatch-carrier-bom-jlc.csv`
+  (JLC-placed lines only), `out/wherewatch-carrier-cpl-jlc-bottom.csv` (30 bottom parts, JLC columns). Full BOM with
+  tiers, stock and prices: `out/wherewatch-carrier-bom.csv`; full CPL: `out/wherewatch-carrier-cpl.csv`.
+- Fee estimate from JLC's published table, five boards, not a quote: Economic setup 8.18 + stencil 1.53 + 8 Extended
+  feeders 24.56 + 670 joints 11.79 + X-ray on the two leadless parts up to 16.40 + parts 20.71 = about USD 83, plus the
+  bare PCB (7.10 parametric) and shipping, plus five XIAO and five ATGM336H bought separately.
+
 ## Verification before any order
 Bench-prove the same circuit with the modules on jumper wires (ASSEMBLY.md) → KiCad ERC and DRC clean → JLCPCB DFM check on upload → second-agent review of the schematic against this pin map → first order 5 boards.
 

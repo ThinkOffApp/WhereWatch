@@ -1,4 +1,4 @@
-(pcb "/Users/petrus/Documents/Codex/2026-09-09/chec/work/wherewatch-review/hardware/out/wherewatch-carrier.dsn"
+(pcb "/Users/petrus/AndroidStudioProjects/WhereWatch-hw/hardware/out/wherewatch-carrier.dsn"
   (parser
     (string_quote ")
     (space_in_quoted_tokens on)
@@ -231,13 +231,13 @@
       (place SW1 41700 5403.5 back 180 (PN "SW-TH_MSK12C02"))
     )
     (component R_0402_1005Metric
-      (place R11 17750 250 back 180 (PN R_0402_1005Metric))
-      (place R10 34750 6250 back 180 (PN R_0402_1005Metric))
-      (place R9 34750 5000 back 180 (PN R_0402_1005Metric))
+      (place R11 36500 -6750 back 180 (PN R_0402_1005Metric))
+      (place R10 21750 -250 back 180 (PN R_0402_1005Metric))
+      (place R9 34250 -9250 back 180 (PN R_0402_1005Metric))
       (place R8 20000 1000 back 180 (PN R_0402_1005Metric))
       (place R7 18250 -1000 back 180 (PN R_0402_1005Metric))
-      (place R5 21750 -1000 back 180 (PN R_0402_1005Metric))
-      (place R4 34250 -9500 back 180 (PN R_0402_1005Metric))
+      (place R5 34250 -8000 back 180 (PN R_0402_1005Metric))
+      (place R4 34250 -6750 back 180 (PN R_0402_1005Metric))
       (place R2 30500 -4000 back 180 (PN R_0402_1005Metric))
       (place R1 43500 2000 back 180 (PN R_0402_1005Metric))
     )
@@ -246,15 +246,15 @@
       (place R3 20000 -700 back 270 (PN R_0402_1005Metric))
     )
     (component "SOT-23"
-      (place Q3 36250 -7250 front -0 (PN "SOT-23"))
-      (place Q2 43500 -4500 back 180 (PN "SOT-23"))
+      (place Q3 31500 -1500 back 180 (PN "SOT-23"))
+      (place Q2 41750 -3500 back 180 (PN "SOT-23"))
       (place Q1 36000 750 back 180 (PN "SOT-23"))
     )
     (component L_0402_1005Metric
-      (place L1 49400 0 front 0 (PN L_0402_1005Metric))
+      (place L1 47200 3600 back 180 (PN L_0402_1005Metric))
     )
-    (component "JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
-      (place J6 37200 -5400 back 180 (PN "JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"))
+    (component OLED_Pads_1x04_P1.00mm
+      (place J6 36700 -7300 front 0 (PN PinHeader_1x04_P1.00mm_Vertical_SMD_Pin1Left))
     )
     (component "JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal"
       (place J5 19200 -7000 back 180 (PN "JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal"))
@@ -265,17 +265,17 @@
       (place J3 47875 0 back 180 (PN "U.FL_Hirose_U.FL-R-SMT-1_Vertical"))
     )
     (component "D_SOD-123"
-      (place D1 41022.5 -6750 front -0 (PN "D_SOD-123"))
+      (place D1 36272.5 -3000 back 180 (PN "D_SOD-123"))
     )
     (component C_0603_1608Metric
-      (place C6 35250 3500 back 180 (PN C_0603_1608Metric))
-      (place C2 31000 -2500 back 180 (PN C_0603_1608Metric))
-      (place C1 31000 -500 back 180 (PN C_0603_1608Metric))
+      (place C6 35250 5500 back 180 (PN C_0603_1608Metric))
+      (place C2 34750 -5250 back 180 (PN C_0603_1608Metric))
+      (place C1 35250 3500 back 180 (PN C_0603_1608Metric))
     )
     (component C_0402_1005Metric
-      (place C5 34750 8750 back 180 (PN C_0402_1005Metric))
+      (place C5 37500 -5000 back 180 (PN C_0402_1005Metric))
       (place C4 16000 -1000 back 180 (PN C_0402_1005Metric))
-      (place C3 34750 7500 back 180 (PN C_0402_1005Metric))
+      (place C3 34750 7000 back 180 (PN C_0402_1005Metric))
     )
   )
   (library
@@ -5164,28 +5164,13 @@
       (pin RoundRect[T]Pad_590.000000x640.000000_148.061000_um_0.000000_0 1 -485 0)
       (pin RoundRect[T]Pad_590.000000x640.000000_148.061000_um_0.000000_0 2 485 0)
     )
-    (image "JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
-      (outline (polygon signal 0  2295 2175  3495 2175  3495 -475  3895 -475  3895 -3275
-            1695 -3275  1695 -3075  -1695 -3075  -1695 -3275  -3895 -3275
-            -3895 -475  -3495 -475  -3495 2175  -2295 2175  -2295 3275  2295 3275))
-      (outline (path signal 120  -3110 1785  -2060 1785))
-      (outline (path signal 120  -3110 -715  -3110 1785))
-      (outline (path signal 120  -2060 1785  -2060 2775))
-      (outline (path signal 120  -1940 -2685  1940 -2685))
-      (outline (path signal 120  3110 1785  2060 1785))
-      (outline (path signal 120  3110 -715  3110 1785))
-      (outline (path signal 100  -3000 1675  -3000 -2575))
-      (outline (path signal 100  -3000 1675  3000 1675))
-      (outline (path signal 100  -3000 -2575  3000 -2575))
-      (outline (path signal 100  -2000 1675  -1500 967.893))
-      (outline (path signal 100  -1500 967.893  -1000 1675))
-      (outline (path signal 100  3000 1675  3000 -2575))
-      (pin RoundRect[T]Pad_600.000000x1550.000000_150.571000_um_0.000000_0 1 -1500 2000)
-      (pin RoundRect[T]Pad_600.000000x1550.000000_150.571000_um_0.000000_0 2 -500 2000)
-      (pin RoundRect[T]Pad_600.000000x1550.000000_150.571000_um_0.000000_0 3 500 2000)
-      (pin RoundRect[T]Pad_600.000000x1550.000000_150.571000_um_0.000000_0 4 1500 2000)
-      (pin RoundRect[T]Pad_1200.000000x1800.000000_250.951000_um_0.000000_0 MP -2800 -1875)
-      (pin RoundRect[T]Pad_1200.000000x1800.000000_250.951000_um_0.000000_0 MP@1 2800 -1875)
+    (image OLED_Pads_1x04_P1.00mm
+      (outline (polygon signal 0  1995 -2045  -1995 -2045  -1995 2045  1995 2045))
+      (outline (path signal 120  -2150 2200  2150 2200  2150 -2200  -2150 -2200  -2150 2200))
+      (pin Rect[T]Pad_1750.000000x600.000000_um 1 -875 1500)
+      (pin Rect[T]Pad_1750.000000x600.000000_um 2 875 500)
+      (pin Rect[T]Pad_1750.000000x600.000000_um 3 -875 -500)
+      (pin Rect[T]Pad_1750.000000x600.000000_um 4 875 -1500)
     )
     (image "JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal"
       (outline (polygon signal 0  1995 3695  4445 3695  4445 -695  4595 -695  4595 -5095
@@ -5376,15 +5361,6 @@
             -295.561 172.5))
       (attach off)
     )
-    (padstack RoundRect[T]Pad_600.000000x1550.000000_150.571000_um_0.000000_0
-      (shape (polygon F.Cu 0  -300.571 625  -289.109 682.621  -256.47 731.47  -207.621 764.109
-            -149.999 775.57  150 775.571  207.621 764.109  256.47 731.47
-            289.109 682.621  300.57 624.999  300.571 -625  289.109 -682.621
-            256.47 -731.47  207.621 -764.109  149.999 -775.57  -150 -775.571
-            -207.621 -764.109  -256.47 -731.47  -289.109 -682.621  -300.57 -624.999
-            -300.571 625))
-      (attach off)
-    )
     (padstack RoundRect[T]Pad_625.000000x350.000000_87.833000_um_0.000000_0
       (shape (polygon F.Cu 0  -312.833 87.5  -306.147 121.112  -287.107 149.607  -258.612 168.647
             -224.999 175.332  225 175.333  258.612 168.647  287.107 149.607
@@ -5439,15 +5415,6 @@
             -525.951 250))
       (attach off)
     )
-    (padstack RoundRect[T]Pad_1200.000000x1800.000000_250.951000_um_0.000000_0
-      (shape (polygon F.Cu 0  -600.951 650  -581.848 746.035  -527.449 827.449  -446.035 881.848
-            -349.999 900.95  350 900.951  446.035 881.848  527.449 827.449
-            581.848 746.035  600.95 649.999  600.951 -650  581.848 -746.035
-            527.449 -827.449  446.035 -881.848  349.999 -900.95  -350 -900.951
-            -446.035 -881.848  -527.449 -827.449  -581.848 -746.035  -600.95 -649.999
-            -600.951 650))
-      (attach off)
-    )
     (padstack RoundRect[T]Pad_1475.000000x600.000000_150.571000_um_0.000000_0
       (shape (polygon F.Cu 0  -738.071 150  -726.609 207.621  -693.97 256.47  -645.121 289.109
             -587.499 300.57  587.5 300.571  645.121 289.109  693.97 256.47
@@ -5480,6 +5447,10 @@
     )
     (padstack Rect[T]Pad_1700.000000x1000.000000_um
       (shape (rect F.Cu -850 -500 850 500))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1750.000000x600.000000_um
+      (shape (rect F.Cu -875 -300 875 300))
       (attach off)
     )
     (padstack "Via[0-3]_600:300_um"
@@ -5666,29 +5637,31 @@
     (via "Via[0-3]_600:300_um"  28380 -3692.5 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  45412.8 -2200 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  48185.8 -4400 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  37179.2 5786.5 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  35792.8 4400 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  41452 1487.02 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  40377.5 1725 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  40527.5 250 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  39215 -1562.5 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  19344.8 3223.54 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  18397.7 937.053 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  27079.5 5411.75 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  30837.2 3682.22 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  30602.8 -6416.62 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  26900 -5900 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  41967.1 2537.56 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  36080 6250 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  35839.8 4420.17 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  22260 -1070 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  35580 -9250 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  21610 1000 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  19073.8 -1757.58 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  35786.1 -9343.3 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  43800 -3550 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  36700 -8675 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  29687.5 -1425.04 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  42050 -2550 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  38950 -6800 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  49475 1475 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  49475 -1475 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  19339 6228.73 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  37000 5500 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  38790 -5000 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  36040 7000 (net GND)(type route))
+    (via "Via[0-3]_600:300_um"  35151.9 -4349.22 (net GND)(type route))
     (via "Via[0-3]_600:300_um"  35651.9 2599.22 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  36040 8750 (net GND)(type route))
-    (via "Via[0-3]_600:300_um"  36040 7500 (net GND)(type route))
   )
 )
