@@ -37649,7 +37649,7 @@
 		(uuid "caf74241-3c39-4539-bf23-8f16da2a4c9a")
 	)
 	(segment
-		(start 48.425 3.091)
+		(start 48.4247 3.0913)
 		(end 48.689 3.091)
 		(width 0.35)
 		(layer "F.Cu")
@@ -37689,7 +37689,7 @@
 		(uuid "40e9c044-8fa8-439d-8759-20dcfd04f633")
 	)
 	(segment
-		(start 48.425 3.091)
+		(start 48.4247 3.0913)
 		(end 48.216 3.3)
 		(width 0.35)
 		(layer "F.Cu")
@@ -37730,7 +37730,7 @@
 	)
 	(segment
 		(start 47.3 3.091)
-		(end 48.425 3.091)
+		(end 48.4247 3.0913)
 		(width 0.35)
 		(layer "B.Cu")
 		(net "GNSS_RF")
