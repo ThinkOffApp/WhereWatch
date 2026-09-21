@@ -211,6 +211,37 @@ module engraving() {
 
 module personalise() { if (pad_flat) engrave_pad(); engraving(); }
 
+/* [ThinkOff heart - engraved logo on the front/lid half] ---------------------------------------
+ * The pebble is z-symmetric (pebble_core's primitives are all centred on z=0), so the FRONT
+ * surface (+z, the camera/lid half) is the mirror of the back's taper: front_z(x) = -back_z(x),
+ * and the local slope mirrors too. Reuses the same "tilted flat pad" trick as recess_on_back so
+ * the recess floor stays parallel to the local surface (constant depth) instead of biting deeper
+ * at one end on this tapered shell.
+ */
+heart_logo   = true;
+heart_size   = 26;     // mm, longest axis: ~60% of wid=43.4 (the shell's shorter face dimension)
+heart_depth  = 0.5;    // mm recess; wall = 1.5 mm here, so this leaves the 1.0 mm minimum wall
+// Centred on the front face would sit inside the privacy-mark pad (pm_x=11, pad spans x 5..17,
+// y -12..12) which overlaps the heart's default x 0..11 range, so the heart is shifted toward
+// the battery half (-x) by 10 mm to clear it (5 mm min gap to the pad, > the 1.5 mm minimum).
+heart_x = -10;
+heart_y = 0;
+function front_z(x) = -back_z(x);
+front_tilt    = -back_tilt;
+module recess_on_front(x, depth) {
+    // mirror of recess_on_back: front's outside is +z, so the tool starts 3 mm above the surface
+    // and cuts down through it by `depth` (no mirror([0,1,0]): front is viewed from +z looking
+    // toward -z, which is the standard, non-mirrored orientation for an extruded 2D shape).
+    translate([x, 0, front_z(x)]) rotate([0, front_tilt, 0]) translate([0, 0, -depth])
+        linear_extrude(height = depth + 3) children();
+}
+include <heart_pts.scad>
+module thinkoff_heart_2d() { polygon(points = [for (p = heart_pts_norm) [p[0] * heart_size, p[1] * heart_size]]); }
+module heart_engraving() {
+    // heart_y is 0 (centred across the width); kept as a named parameter for future placement.
+    if (heart_logo) recess_on_front(heart_x, heart_depth) translate([0, -heart_y, 0]) thinkoff_heart_2d();
+}
+
 module openings() {
     if (privacy_marks) privacy_engraving();
     // camera lens (front, +z)
@@ -232,6 +263,7 @@ module body() {
         difference() { pebble_solid(); pebble_solid(inset = wall); }
         openings();
         personalise();
+        heart_engraving();
     }
 }
 
