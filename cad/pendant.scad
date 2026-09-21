@@ -233,11 +233,27 @@ heart_y = 0;
 function front_z(x) = -back_z(x);
 front_tilt    = -back_tilt;
 module recess_on_front(x, depth) {
-    // mirror of recess_on_back: front's outside is +z, so the tool starts 3 mm above the surface
-    // and cuts down through it by `depth` (no mirror([0,1,0]): front is viewed from +z looking
-    // toward -z, which is the standard, non-mirrored orientation for an extruded 2D shape).
-    translate([x, 0, front_z(x)]) rotate([0, front_tilt, 0]) translate([0, 0, -depth])
-        linear_extrude(height = depth + 3) children();
+    // NOT a rotated extrusion of the shape (that was tried first and rejected: rotating the
+    // extruded TOOL by front_tilt around the world Y axis pivots around the shape's own centre,
+    // but the tool has thickness in z (-depth..+3), so points at different z get sheared by
+    // different amounts in x - up to ~0.07 mm differential across the tool here - and x is
+    // exactly the heart's own left-right mirror axis. The result: a visibly straight facet on
+    // one lobe even though the source polygon is provably exactly mirror-symmetric (checked to
+    // 0.0 in cad/heart_pts.scad). Root-caused by comparing a front_tilt=0 test render (both
+    // lobes round, no facet) against the normal tilted one (facet reproduces).
+    // Fix: keep the shape's own extrusion perfectly straight (world Z, zero rotation, so it can
+    // never distort the outline), and get the taper-following depth from a SEPARATE, simple,
+    // generously oversized tilted slab (a plain box - no fine shape to shear) intersected with
+    // it. front_z(x) is an exact linear taper in this region (a hull tangent line, not an
+    // approximation), so the slab gives the same correct per-point depth as the old rotated
+    // tool did, without moving the heart's own outline at all.
+    intersection() {
+        // straight world-Z prism, no rotation (so it can't shear/distort the outline), placed
+        // at world x the same way the old single-branch version did.
+        translate([x, 0, -30]) linear_extrude(height = 60) children();
+        translate([x, 0, front_z(x)]) rotate([0, front_tilt, 0])
+            translate([-40, -40, -depth]) cube([80, 80, depth + 3]);
+    }
 }
 include <heart_pts.scad>
 module thinkoff_heart_2d() { polygon(points = [for (p = heart_pts_norm) [p[0] * heart_size, p[1] * heart_size]]); }
