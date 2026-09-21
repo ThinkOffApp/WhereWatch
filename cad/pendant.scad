@@ -233,26 +233,36 @@ heart_y = 0;
 function front_z(x) = -back_z(x);
 front_tilt    = -back_tilt;
 module recess_on_front(x, depth) {
-    // NOT a rotated extrusion of the shape (that was tried first and rejected: rotating the
-    // extruded TOOL by front_tilt around the world Y axis pivots around the shape's own centre,
-    // but the tool has thickness in z (-depth..+3), so points at different z get sheared by
-    // different amounts in x - up to ~0.07 mm differential across the tool here - and x is
-    // exactly the heart's own left-right mirror axis. The result: a visibly straight facet on
-    // one lobe even though the source polygon is provably exactly mirror-symmetric (checked to
-    // 0.0 in cad/heart_pts.scad). Root-caused by comparing a front_tilt=0 test render (both
-    // lobes round, no facet) against the normal tilted one (facet reproduces).
-    // Fix: keep the shape's own extrusion perfectly straight (world Z, zero rotation, so it can
-    // never distort the outline), and get the taper-following depth from a SEPARATE, simple,
-    // generously oversized tilted slab (a plain box - no fine shape to shear) intersected with
-    // it. front_z(x) is an exact linear taper in this region (a hull tangent line, not an
-    // approximation), so the slab gives the same correct per-point depth as the old rotated
-    // tool did, without moving the heart's own outline at all.
+    // History of two rejected approaches, both left here because the next person WILL be
+    // tempted to retry one of them:
+    //  1) A single rotated extrusion of the heart shape (rotate the whole tool by front_tilt
+    //     around the world Y axis). Rejected: the tool has thickness in z, so points at
+    //     different z shear by different amounts in x under that rotation - and x is exactly
+    //     the heart's own left-right mirror axis. Gave a visibly straight facet on one lobe.
+    //  2) A straight (unrotated) prism of the heart shape intersected with a plain box tilted
+    //     by front_tilt, using a SINGLE reference x (front_z(x) only, no y dependence) for the
+    //     box's z-bounds. Rejected: front_z(x) models the taper along x but not the dome's
+    //     curvature in y, and that curvature is not symmetric about the heart's own x=heart_x
+    //     axis (it's steeper approaching the narrower tip than toward the wider battery end).
+    //     Measured directly on the exported mesh (ray-cast a fine grid, not just the source
+    //     polygon): the box's z-bound stopped clearing the true local surface near the top of
+    //     the lobes on one side before the other, so the cut silently fell short of the
+    //     heart's own polygon there - a REAL asymmetry in the printed shape (max mirror
+    //     deviation 1.44 mm measured on the mesh), even though cad/heart_pts.scad is exactly
+    //     symmetric as data. That is what actually produced the visible facet.
+    // Fix: get the depth-tracking surface from the shell geometry itself, not an x-only
+    // formula. pebble_solid(inset=depth) is already an exact TRUE 3D offset of the whole shell
+    // by `depth` (a minkowski sum, so it correctly follows curvature in both x and y - see the
+    // "TRUE uniform wall" comment on pebble_solid() above). difference(pebble_solid(),
+    // pebble_solid(inset=depth)) is therefore an exact depth-thick shell hugging the WHOLE
+    // pebble's outer surface; a straight (unrotated - so it cannot shear the outline), z>=0-only
+    // heart prism intersected with that shell gives exactly the heart-shaped patch of that
+    // shell on the front half, with the recess floor correctly following the true surface at
+    // every (x,y), not an x-only approximation.
     intersection() {
-        // straight world-Z prism, no rotation (so it can't shear/distort the outline), placed
-        // at world x the same way the old single-branch version did.
-        translate([x, 0, -30]) linear_extrude(height = 60) children();
-        translate([x, 0, front_z(x)]) rotate([0, front_tilt, 0])
-            translate([-40, -40, -depth]) cube([80, 80, depth + 3]);
+        translate([x, 0, -30]) linear_extrude(height = 60) children();  // straight world-Z heart prism, exact XY footprint
+        translate([-200, -200, 0]) cube([400, 400, 100]);                // z >= 0 only: front half, never touches the back (kept close to the pendant's own ~100 mm scale - an oversized helper box here throws off OpenSCAD's PNG camera auto-scaling even with an explicit --camera)
+        difference() { pebble_solid(); pebble_solid(inset = depth); }   // true depth-thick offset shell, whole pebble
     }
 }
 include <heart_pts.scad>
