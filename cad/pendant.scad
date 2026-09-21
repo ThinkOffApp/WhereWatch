@@ -211,6 +211,67 @@ module engraving() {
 
 module personalise() { if (pad_flat) engrave_pad(); engraving(); }
 
+/* [ThinkOff heart - engraved logo on the front/lid half] ---------------------------------------
+ * The pebble is z-symmetric (pebble_core's primitives are all centred on z=0), so the FRONT
+ * surface (+z, the camera/lid half) is the mirror of the back's taper: front_z(x) = -back_z(x),
+ * and the local slope mirrors too. Reuses the same "tilted flat pad" trick as recess_on_back so
+ * the recess floor stays parallel to the local surface (constant depth) instead of biting deeper
+ * at one end on this tapered shell.
+ */
+heart_logo   = true;
+heart_size   = 26;     // mm, longest (x, left-right) axis: ~60% of wid=43.4 (shell's shorter face dimension)
+heart_depth  = 0.5;    // mm recess; wall = 1.5 mm here, so this leaves the 1.0 mm minimum wall
+// heart_pts_norm maps DIRECTLY as (x,y) here (same convention as the privacy-mark icons: local
+// +y = up), so the heart sits upright: cleft/lobes toward +y, point toward -y. Footprint at
+// heart_size=26 is x +-13 mm, y +-11.17 mm around (heart_x, heart_y).
+// Centred on the front face (heart_x=0) would come within 2 mm of the privacy-mark pad (pm_x=11,
+// pad spans x 5..17, y -12..12, which fully overlaps the heart's y range), so the heart is
+// shifted toward the battery half (-x) by 10 mm: footprint x -23..3, a 2 mm gap to the pad
+// (>= the 1.5 mm minimum; case-edge clearance at this position is >8 mm, not the binding one).
+heart_x = -10;
+heart_y = 0;
+function front_z(x) = -back_z(x);
+front_tilt    = -back_tilt;
+module recess_on_front(x, depth) {
+    // History of two rejected approaches, both left here because the next person WILL be
+    // tempted to retry one of them:
+    //  1) A single rotated extrusion of the heart shape (rotate the whole tool by front_tilt
+    //     around the world Y axis). Rejected: the tool has thickness in z, so points at
+    //     different z shear by different amounts in x under that rotation - and x is exactly
+    //     the heart's own left-right mirror axis. Gave a visibly straight facet on one lobe.
+    //  2) A straight (unrotated) prism of the heart shape intersected with a plain box tilted
+    //     by front_tilt, using a SINGLE reference x (front_z(x) only, no y dependence) for the
+    //     box's z-bounds. Rejected: front_z(x) models the taper along x but not the dome's
+    //     curvature in y, and that curvature is not symmetric about the heart's own x=heart_x
+    //     axis (it's steeper approaching the narrower tip than toward the wider battery end).
+    //     Measured directly on the exported mesh (ray-cast a fine grid, not just the source
+    //     polygon): the box's z-bound stopped clearing the true local surface near the top of
+    //     the lobes on one side before the other, so the cut silently fell short of the
+    //     heart's own polygon there - a REAL asymmetry in the printed shape (max mirror
+    //     deviation 1.44 mm measured on the mesh), even though cad/heart_pts.scad is exactly
+    //     symmetric as data. That is what actually produced the visible facet.
+    // Fix: get the depth-tracking surface from the shell geometry itself, not an x-only
+    // formula. pebble_solid(inset=depth) is already an exact TRUE 3D offset of the whole shell
+    // by `depth` (a minkowski sum, so it correctly follows curvature in both x and y - see the
+    // "TRUE uniform wall" comment on pebble_solid() above). difference(pebble_solid(),
+    // pebble_solid(inset=depth)) is therefore an exact depth-thick shell hugging the WHOLE
+    // pebble's outer surface; a straight (unrotated - so it cannot shear the outline), z>=0-only
+    // heart prism intersected with that shell gives exactly the heart-shaped patch of that
+    // shell on the front half, with the recess floor correctly following the true surface at
+    // every (x,y), not an x-only approximation.
+    intersection() {
+        translate([x, 0, -30]) linear_extrude(height = 60) children();  // straight world-Z heart prism, exact XY footprint
+        translate([-200, -200, 0]) cube([400, 400, 100]);                // z >= 0 only: front half, never touches the back (kept close to the pendant's own ~100 mm scale - an oversized helper box here throws off OpenSCAD's PNG camera auto-scaling even with an explicit --camera)
+        difference() { pebble_solid(); pebble_solid(inset = depth); }   // true depth-thick offset shell, whole pebble
+    }
+}
+include <heart_pts.scad>
+module thinkoff_heart_2d() { polygon(points = [for (p = heart_pts_norm) [p[0] * heart_size, p[1] * heart_size]]); }
+module heart_engraving() {
+    // heart_y is 0 (centred across the width); kept as a named parameter for future placement.
+    if (heart_logo) recess_on_front(heart_x, heart_depth) translate([0, -heart_y, 0]) thinkoff_heart_2d();
+}
+
 module openings() {
     if (privacy_marks) privacy_engraving();
     // camera lens (front, +z)
@@ -232,6 +293,7 @@ module body() {
         difference() { pebble_solid(); pebble_solid(inset = wall); }
         openings();
         personalise();
+        heart_engraving();
     }
 }
 
