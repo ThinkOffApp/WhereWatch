@@ -219,11 +219,15 @@ module personalise() { if (pad_flat) engrave_pad(); engraving(); }
  * at one end on this tapered shell.
  */
 heart_logo   = true;
-heart_size   = 26;     // mm, longest axis: ~60% of wid=43.4 (the shell's shorter face dimension)
+heart_size   = 26;     // mm, longest (x, left-right) axis: ~60% of wid=43.4 (shell's shorter face dimension)
 heart_depth  = 0.5;    // mm recess; wall = 1.5 mm here, so this leaves the 1.0 mm minimum wall
-// Centred on the front face would sit inside the privacy-mark pad (pm_x=11, pad spans x 5..17,
-// y -12..12) which overlaps the heart's default x 0..11 range, so the heart is shifted toward
-// the battery half (-x) by 10 mm to clear it (5 mm min gap to the pad, > the 1.5 mm minimum).
+// heart_pts_norm maps DIRECTLY as (x,y) here (same convention as the privacy-mark icons: local
+// +y = up), so the heart sits upright: cleft/lobes toward +y, point toward -y. Footprint at
+// heart_size=26 is x +-13 mm, y +-11.17 mm around (heart_x, heart_y).
+// Centred on the front face (heart_x=0) would come within 2 mm of the privacy-mark pad (pm_x=11,
+// pad spans x 5..17, y -12..12, which fully overlaps the heart's y range), so the heart is
+// shifted toward the battery half (-x) by 10 mm: footprint x -23..3, a 2 mm gap to the pad
+// (>= the 1.5 mm minimum; case-edge clearance at this position is >8 mm, not the binding one).
 heart_x = -10;
 heart_y = 0;
 function front_z(x) = -back_z(x);
