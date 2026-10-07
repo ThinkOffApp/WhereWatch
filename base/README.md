@@ -19,7 +19,7 @@ llama-server -m Qwen3VL-8B-Instruct-Q8_0.gguf --mmproj mmproj-Qwen3VL-8B-Instruc
   -ngl 999 -c 16384 --host 127.0.0.1 --port 8095 --alias qwen3-vl -np 2
 ```
 
-Then, standard library Python only, nothing to install:
+Then, with Python 3 and Pillow (the only dependency, used to blur faces):
 
 ```
 python3 base/wherewatch_base.py --vision http://127.0.0.1:8095
@@ -45,8 +45,12 @@ people and anything worn or held, any thing whose name or position mentions a
 person is dropped, and a place described by a person is blanked. `test_base.py`
 pins that filter.
 
-Open question: the index holds no people, but a photo used as evidence can
-still show one in the background.
+Photos themselves: faces are blurred before a photo is stored (petrus's call,
+7 Oct 2026). The model is asked for every face or head box; each box is padded,
+pixelated and blurred, and the unblurred original is never kept. If the model
+says people are present but gives no usable boxes, or the face check fails,
+the whole photo is blurred instead (fail closed). Metadata is dropped on save.
+This roughly doubles indexing time (two model calls per photo).
 
 ## Test
 

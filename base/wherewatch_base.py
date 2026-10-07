@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """WhereWatch base station v0: photos in, "where is my X" answers out.
 
-Standard library only, so it runs on any base station without installs.
+Standard library plus Pillow (for face blurring), nothing else to install.
 
   photos dropped into INBOX
     -> a local vision model (OpenAI-compatible llama-server with an mmproj)
        lists the THINGS in each photo and where they are
+    -> faces are blurred before the photo is stored; the unblurred original
+       is never kept (if faces cannot be located, the whole photo is blurred)
     -> SQLite index (people are never stored: dropped in the prompt AND by a
        name filter afterwards, so "where is Anna" stays unanswerable)
     -> the existing web app's /api/* (web/API.md) answers from real data.
@@ -28,6 +30,8 @@ import time
 import urllib.parse
 import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+from PIL import Image, ImageFilter, ImageOps
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(os.path.dirname(HERE), "web")
@@ -58,6 +62,14 @@ Answer with JSON only, no prose:
               "relative_position": "<where exactly, e.g. beside the bowl>",
               "confidence": <0.0-1.0>}]}
 If nothing qualifies, return {"place": "...", "objects": []}."""
+
+FACE_PROMPT = """Locate every human face or head in this photo, including small,
+partial, turned-away or background ones, and faces on screens or posters.
+Answer with JSON only:
+{"people": <true if any person is visible at all, else false>,
+ "faces": [[x1, y1, x2, y2], ...]}
+Coordinates are integers from 0 to 1000, relative to the image width (x) and
+height (y), top-left origin. Use {"people": false, "faces": []} if there are none."""
 
 
 def clean(s, limit=80):
@@ -108,7 +120,7 @@ def taken_at(path):
     return dt.datetime.fromtimestamp(os.path.getmtime(path)).replace(microsecond=0).isoformat()
 
 
-def ask_vision(url, model, path, timeout):
+def ask_vision(url, model, path, timeout, prompt=PROMPT):
     mime = mimetypes.guess_type(path)[0] or "image/jpeg"
     with open(path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
@@ -117,7 +129,7 @@ def ask_vision(url, model, path, timeout):
         "temperature": 0,
         "max_tokens": 600,
         "messages": [{"role": "user", "content": [
-            {"type": "text", "text": PROMPT},
+            {"type": "text", "text": prompt},
             {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
         ]}],
     }
@@ -130,6 +142,50 @@ def ask_vision(url, model, path, timeout):
     if not m:
         raise ValueError("no JSON in model answer: " + text[:200])
     return json.loads(m.group(0))
+
+
+def face_boxes(answer, w, h):
+    """Model boxes (0-1000) -> padded pixel boxes. None means "people, but no
+    usable boxes": the caller must then blur everything (fail closed)."""
+    boxes = []
+    for b in answer.get("faces") or []:
+        try:
+            x1, y1, x2, y2 = (float(v) for v in b)
+        except (TypeError, ValueError):
+            continue
+        x1, x2 = sorted((x1, x2))
+        y1, y2 = sorted((y1, y2))
+        if x2 - x1 < 1 or y2 - y1 < 1:
+            continue
+        pw, ph = (x2 - x1) * 0.35, (y2 - y1) * 0.35  # pad: model boxes run tight
+        boxes.append((max(0, int((x1 - pw) * w / 1000)), max(0, int((y1 - ph) * h / 1000)),
+                      min(w, int((x2 + pw) * w / 1000)), min(h, int((y2 + ph) * h / 1000))))
+    if answer.get("people") and not boxes:
+        return None
+    return boxes
+
+
+def blur_faces(path, answer):
+    """Blur faces in place and drop all metadata. Returns how many regions were
+    blurred, or -1 when the whole photo was blurred (fail closed)."""
+    with Image.open(path) as im:
+        im = ImageOps.exif_transpose(im).convert("RGB")
+    w, h = im.size
+    boxes = face_boxes(answer, w, h) if answer is not None else None
+    if boxes is None:
+        im = im.filter(ImageFilter.GaussianBlur(max(w, h) / 40))
+        n = -1
+    else:
+        for (x1, y1, x2, y2) in boxes:
+            region = im.crop((x1, y1, x2, y2))
+            # pixelate then blur: unrecoverable, still reads as "a face was here"
+            small = region.resize((max(1, (x2 - x1) // 12), max(1, (y2 - y1) // 12)))
+            region = small.resize(region.size).filter(ImageFilter.GaussianBlur(max(x2 - x1, y2 - y1) / 10))
+            im.paste(region, (x1, y1))
+        n = len(boxes)
+    fmt = "PNG" if path.lower().endswith(".png") else "JPEG"
+    im.save(path, fmt, **({"quality": 90} if fmt == "JPEG" else {}))  # no EXIF written
+    return n
 
 
 def index_photo(store, args, src):
@@ -145,6 +201,19 @@ def index_photo(store, args, src):
         err = None
     except Exception as e:  # keep the photo, record why it was not indexed
         result, err = {"place": "", "objects": []}, f"{type(e).__name__}: {e}"[:300]
+    # Faces are blurred before the photo is kept; if the face check itself
+    # fails, the whole photo is blurred rather than stored as is.
+    try:
+        faces = ask_vision(args.vision, args.model, dst, args.timeout, FACE_PROMPT)
+    except Exception as e:
+        faces = None
+        err = (err + "; " if err else "") + f"face check failed, whole photo blurred: {type(e).__name__}"[:200]
+    try:
+        blurred = blur_faces(dst, faces)
+    except Exception as e:  # unreadable image: do not keep it
+        os.remove(dst)
+        print(f"[index] {name}: unreadable, deleted ({type(e).__name__})", flush=True)
+        return
     place = clean(result.get("place"))
     if PEOPLE.search(place):  # a place described by a person is no place
         place = ""
@@ -173,7 +242,9 @@ def index_photo(store, args, src):
                 " VALUES(?,?,?,?,?,?,?)",
                 (pid, obj, json.dumps(aliases), place, rel, conf, when))
         kept += 1
-    print(f"[index] {name} @ {when}: {kept} things at '{place}'"
+    faces_note = (", whole photo blurred" if blurred < 0 else
+                  f", {blurred} face(s) blurred" if blurred else "")
+    print(f"[index] {name} @ {when}: {kept} things at '{place}'" + faces_note
           + (f", {dropped} dropped" if dropped else "") + (f", ERROR {err}" if err else ""), flush=True)
 
 
