@@ -21,6 +21,7 @@ import base64
 import datetime as dt
 import html
 import json
+import math
 import mimetypes
 import os
 import re
@@ -157,19 +158,25 @@ def face_boxes(answer, w, h):
         return None
     boxes = []
     for b in answer["faces"]:
+        # One bad box spoils the whole answer: skipping it while keeping the
+        # others would leave that face unblurred.
+        if not isinstance(b, (list, tuple)) or len(b) != 4:
+            return None
         try:
             x1, y1, x2, y2 = (float(v) for v in b)
         except (TypeError, ValueError):
-            continue
+            return None
+        if not all(math.isfinite(v) and 0 <= v <= 1000 for v in (x1, y1, x2, y2)):
+            return None
         x1, x2 = sorted((x1, x2))
         y1, y2 = sorted((y1, y2))
         if x2 - x1 < 1 or y2 - y1 < 1:
-            continue
+            return None
         pw, ph = (x2 - x1) * 0.35, (y2 - y1) * 0.35  # pad: model boxes run tight
         boxes.append((max(0, int((x1 - pw) * w / 1000)), max(0, int((y1 - ph) * h / 1000)),
                       min(w, int((x2 + pw) * w / 1000)), min(h, int((y2 + ph) * h / 1000))))
-    if (answer["people"] or answer["faces"]) and not boxes:
-        return None  # people reported, or boxes sent but none usable
+    if answer["people"] and not boxes:
+        return None  # people reported but not located
     return boxes
 
 

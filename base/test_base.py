@@ -57,6 +57,12 @@ class FaceBlur(unittest.TestCase):
                     {"people": False, "faces": [["x"]]}]:
             self.assertIsNone(ww.face_boxes(bad, 10, 10), bad)
 
+    def test_one_bad_box_rejects_the_whole_answer(self):
+        good = [100, 100, 200, 200]
+        for bad in [[float("nan"), 0, 10, 10], [0, 0, float("inf"), 10], [-5, 0, 10, 10],
+                    [0, 0, 1001, 10], [5, 5, 5, 50], [1, 2, 3], "box", [1, 2, "x", 4]]:
+            self.assertIsNone(ww.face_boxes({"people": True, "faces": [good, bad]}, 10, 10), bad)
+
     def _image(self, path):
         from PIL import Image
         im = Image.new("RGB", (200, 100))

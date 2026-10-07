@@ -53,9 +53,11 @@ call, 7 Oct 2026). Each photo is first turned upright and stripped of metadata
 into a private `staging/` copy; both model calls read that copy, so face boxes
 match the pixels even for rotated phone photos. Each face box is padded,
 pixelated and blurred. If the model says people are present but gives no
-usable boxes, the face check fails, or its answer is not exactly the asked
-shape (a boolean "people" and a list "faces"), the whole photo is blurred
-(fail closed). Only then is the copy moved into the served `photos/` folder in one
+usable boxes, the face check fails, its answer is not exactly the asked shape
+(a boolean "people" and a list "faces"), or any box is malformed, not finite
+or outside 0-1000, the whole photo is blurred (fail closed). Limit: when the
+model answers well-formed "no people" but missed a face, nothing is blurred.
+Face blurring is best effort, as good as the model's eyes, not a guarantee. Only then is the copy moved into the served `photos/` folder in one
 atomic step and indexed; the original stays in the private inbox until that
 point and is deleted afterwards, so a crash leaves nothing unblurred to serve
 and the photo is simply retried. `/photos/` serves only files that are in the
