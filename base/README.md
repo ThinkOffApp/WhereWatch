@@ -26,7 +26,7 @@ python3 base/wherewatch_base.py --vision http://127.0.0.1:8095
 ```
 
 Open http://127.0.0.1:8090/ and drop photos into `base/data/inbox/`. Each photo
-is indexed in a few seconds (about 3.5 s each on one DGX Spark with the setup
+is indexed in a few seconds (about 4.8 s each on one DGX Spark with the setup
 above) and moves to `base/data/photos/`.
 
 ## What it does today
@@ -45,12 +45,18 @@ people and anything worn or held, any thing whose name or position mentions a
 person is dropped, and a place described by a person is blanked. `test_base.py`
 pins that filter.
 
-Photos themselves: faces are blurred before a photo is stored (petrus's call,
-7 Oct 2026). The model is asked for every face or head box; each box is padded,
-pixelated and blurred, and the unblurred original is never kept. If the model
-says people are present but gives no usable boxes, or the face check fails,
-the whole photo is blurred instead (fail closed). Metadata is dropped on save.
-This roughly doubles indexing time (two model calls per photo).
+Photos themselves: faces are blurred before a photo is published (petrus's
+call, 7 Oct 2026). Each photo is first turned upright and stripped of metadata
+into a private `staging/` copy; both model calls read that copy, so face boxes
+match the pixels even for rotated phone photos. Each face box is padded,
+pixelated and blurred. If the model says people are present but gives no
+usable boxes, or the face check fails, the whole photo is blurred (fail
+closed). Only then is the copy moved into the served `photos/` folder in one
+atomic step and indexed; the original stays in the private inbox until that
+point and is deleted afterwards, so a crash leaves nothing unblurred to serve
+and the photo is simply retried. `/photos/` serves only files that are in the
+index. Measured cost: 6 photos in 29 s with the face check (about 4.8 s each)
+against 21 s without it.
 
 ## Test
 

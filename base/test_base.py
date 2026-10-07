@@ -82,6 +82,73 @@ class FaceBlur(unittest.TestCase):
             self.assertNotEqual(before.getpixel((5, 5)), Image.open(p).getpixel((5, 5)))
 
 
+class PublishFlow(unittest.TestCase):
+    """The unblurred original must never be in the served photos/ folder."""
+
+    def setUp(self):
+        import tempfile
+        from PIL import Image
+        self.tmp = tempfile.TemporaryDirectory()
+        d = self.tmp.name
+        for sub in ("inbox", "photos", "staging"):
+            os.makedirs(os.path.join(d, sub))
+        self.args = type("A", (), {"data": d, "vision": "x", "model": "m", "timeout": 1})()
+        self.store = ww.Store(os.path.join(d, "i.sqlite"))
+        self.src = os.path.join(d, "inbox", "p.png")
+        Image.new("RGB", (40, 20), (200, 10, 10)).save(self.src)
+        self.real = ww.ask_vision
+
+    def tearDown(self):
+        ww.ask_vision = self.real
+        self.tmp.cleanup()
+
+    def photos(self):
+        return os.listdir(os.path.join(self.tmp.name, "photos"))
+
+    def test_nothing_is_served_until_blurred_and_indexed(self):
+        seen = []
+
+        def fake(url, model, path, timeout, prompt=ww.PROMPT):
+            seen.append((self.photos(), os.path.dirname(path)))
+            if prompt is ww.FACE_PROMPT:
+                return {"people": False, "faces": []}
+            return {"place": "desk", "objects": [{"name": "keys", "relative_position": "left"}]}
+        ww.ask_vision = fake
+        ww.index_photo(self.store, self.args, self.src)
+        for photos_then, workdir in seen:
+            self.assertEqual(photos_then, [])                     # nothing published yet
+            self.assertTrue(workdir.endswith("staging"))          # model reads the private copy
+        self.assertEqual(self.photos(), ["p.png"])
+        self.assertFalse(os.path.exists(self.src))                # original gone only at the end
+        self.assertEqual(self.store.q("SELECT name FROM sightings"), [("keys",)])
+
+    def test_crash_mid_way_leaves_only_the_private_original(self):
+        class Crash(BaseException):
+            pass
+
+        def boom(*a, **k):
+            raise Crash()
+        ww.ask_vision = boom
+        with self.assertRaises(Crash):
+            ww.index_photo(self.store, self.args, self.src)
+        self.assertEqual(self.photos(), [])
+        self.assertTrue(os.path.exists(self.src))                 # retried on restart
+        self.assertEqual(self.store.q("SELECT COUNT(*) FROM photos"), [(0,)])
+
+    def test_rotated_phone_photo_is_upright_before_the_model_sees_it(self):
+        from PIL import Image
+        im = Image.new("RGB", (40, 20))
+        exif = im.getexif()
+        exif[0x0112] = 6  # "rotate 90": the camera stored it sideways
+        jpg = os.path.join(self.tmp.name, "inbox", "r.jpg")
+        im.save(jpg, exif=exif)
+        out = os.path.join(self.tmp.name, "staging", "r.jpg")
+        ww.normalize(jpg, out)
+        with Image.open(out) as n:
+            self.assertEqual(n.size, (20, 40))
+            self.assertNotIn(0x0112, n.getexif())
+
+
 class Clean(unittest.TestCase):
     def test_markup_cannot_reach_the_page(self):
         self.assertNotIn("<", ww.clean("<img src=x onerror=alert(1)>"))

@@ -188,32 +188,46 @@ def blur_faces(path, answer):
     return n
 
 
+def normalize(src, dst):
+    """Upright pixels, no metadata: what both model calls and the blur see, so
+    face boxes land where the faces are even for rotated phone photos."""
+    with Image.open(src) as im:
+        im = ImageOps.exif_transpose(im).convert("RGB")
+    fmt = "PNG" if dst.lower().endswith(".png") else "JPEG"
+    im.save(dst, fmt, **({"quality": 95} if fmt == "JPEG" else {}))
+
+
 def index_photo(store, args, src):
+    """The original never enters the served photos/ folder. It stays in the
+    private inbox until a blurred copy has been published and indexed, so a
+    crash at any point leaves nothing unblurred to serve, and the photo is
+    simply retried on restart."""
     name = os.path.basename(src)
     if store.q("SELECT 1 FROM photos WHERE file=?", (name,)):
         os.remove(src)
         return
     when = taken_at(src)
-    dst = os.path.join(args.data, "photos", name)
-    shutil.move(src, dst)
+    work = os.path.join(args.data, "staging", name)  # private, never served
     try:
-        result = ask_vision(args.vision, args.model, dst, args.timeout)
+        normalize(src, work)
+    except Exception as e:  # unreadable image: do not keep it
+        os.remove(src)
+        print(f"[index] {name}: unreadable, deleted ({type(e).__name__})", flush=True)
+        return
+    try:
+        result = ask_vision(args.vision, args.model, work, args.timeout)
         err = None
     except Exception as e:  # keep the photo, record why it was not indexed
         result, err = {"place": "", "objects": []}, f"{type(e).__name__}: {e}"[:300]
-    # Faces are blurred before the photo is kept; if the face check itself
-    # fails, the whole photo is blurred rather than stored as is.
+    # Faces are blurred before the photo is published; if the face check
+    # itself fails, the whole photo is blurred rather than kept as is.
     try:
-        faces = ask_vision(args.vision, args.model, dst, args.timeout, FACE_PROMPT)
+        faces = ask_vision(args.vision, args.model, work, args.timeout, FACE_PROMPT)
     except Exception as e:
         faces = None
         err = (err + "; " if err else "") + f"face check failed, whole photo blurred: {type(e).__name__}"[:200]
-    try:
-        blurred = blur_faces(dst, faces)
-    except Exception as e:  # unreadable image: do not keep it
-        os.remove(dst)
-        print(f"[index] {name}: unreadable, deleted ({type(e).__name__})", flush=True)
-        return
+    blurred = blur_faces(work, faces)
+    os.replace(work, os.path.join(args.data, "photos", name))  # atomic publish, same filesystem
     place = clean(result.get("place"))
     if PEOPLE.search(place):  # a place described by a person is no place
         place = ""
@@ -242,6 +256,7 @@ def index_photo(store, args, src):
                 " VALUES(?,?,?,?,?,?,?)",
                 (pid, obj, json.dumps(aliases), place, rel, conf, when))
         kept += 1
+    os.remove(src)  # only now: the blurred copy is published and indexed
     faces_note = (", whole photo blurred" if blurred < 0 else
                   f", {blurred} face(s) blurred" if blurred else "")
     print(f"[index] {name} @ {when}: {kept} things at '{place}'" + faces_note
@@ -350,7 +365,8 @@ def make_handler(store, args):
         def photo(self, name):
             name = os.path.basename(urllib.parse.unquote(name))
             p = os.path.join(args.data, "photos", name)
-            if not os.path.isfile(p):
+            # Serve only photos that finished the blur and are in the index.
+            if not store.q("SELECT 1 FROM photos WHERE file=?", (name,)) or not os.path.isfile(p):
                 return self.send_json({"error": "no photo"}, 404)
             self.send_response(200)
             self.send_header("Content-Type", mimetypes.guess_type(p)[0] or "image/jpeg")
@@ -408,8 +424,13 @@ def main():
     ap.add_argument("--poll", type=float, default=3.0)
     ap.add_argument("--timeout", type=float, default=180.0)
     args = ap.parse_args()
-    for d in ("inbox", "photos"):
+    for d in ("inbox", "photos", "staging"):
         os.makedirs(os.path.join(args.data, d), exist_ok=True)
+    # Staging copies left by a crash are unblurred work files: delete them.
+    # Their originals are still in the inbox and get processed again.
+    staging = os.path.join(args.data, "staging")
+    for f in os.listdir(staging):
+        os.remove(os.path.join(staging, f))
     store = Store(os.path.join(args.data, "index.sqlite"))
     threading.Thread(target=watcher, args=(store, args), daemon=True).start()
     print(f"WhereWatch base v0 on http://{args.host}:{args.port}/  inbox: {os.path.join(args.data, 'inbox')}", flush=True)
