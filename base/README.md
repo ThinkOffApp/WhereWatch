@@ -43,15 +43,19 @@ above) and moves to `base/data/photos/`.
 People are kept out of the index three ways: the prompt tells the model to skip
 people and anything worn or held, any thing whose name or position mentions a
 person is dropped, and a place described by a person is blanked. `test_base.py`
-pins that filter.
+pins that filter. Limit: the filter works on English words, so a proper name
+("Anna's bag") or another language can get past it. It lowers the risk; it is
+not a guarantee. A closed list of allowed thing types would be the stronger
+next step.
 
 Photos themselves: faces are blurred before a photo is published (petrus's
 call, 7 Oct 2026). Each photo is first turned upright and stripped of metadata
 into a private `staging/` copy; both model calls read that copy, so face boxes
 match the pixels even for rotated phone photos. Each face box is padded,
 pixelated and blurred. If the model says people are present but gives no
-usable boxes, or the face check fails, the whole photo is blurred (fail
-closed). Only then is the copy moved into the served `photos/` folder in one
+usable boxes, the face check fails, or its answer is not exactly the asked
+shape (a boolean "people" and a list "faces"), the whole photo is blurred
+(fail closed). Only then is the copy moved into the served `photos/` folder in one
 atomic step and indexed; the original stays in the private inbox until that
 point and is deleted afterwards, so a crash leaves nothing unblurred to serve
 and the photo is simply retried. `/photos/` serves only files that are in the

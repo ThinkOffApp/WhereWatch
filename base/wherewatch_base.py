@@ -8,8 +8,9 @@ Standard library plus Pillow (for face blurring), nothing else to install.
        lists the THINGS in each photo and where they are
     -> faces are blurred before the photo is stored; the unblurred original
        is never kept (if faces cannot be located, the whole photo is blurred)
-    -> SQLite index (people are never stored: dropped in the prompt AND by a
-       name filter afterwards, so "where is Anna" stays unanswerable)
+    -> SQLite index of things only (people are kept out by the prompt AND a
+       word filter afterwards; a word filter cannot catch proper names or
+       other languages, so this lowers the risk rather than guaranteeing it)
     -> the existing web app's /api/* (web/API.md) answers from real data.
 
 Run:  python3 base/wherewatch_base.py --vision http://127.0.0.1:8095
@@ -145,10 +146,17 @@ def ask_vision(url, model, path, timeout, prompt=PROMPT):
 
 
 def face_boxes(answer, w, h):
-    """Model boxes (0-1000) -> padded pixel boxes. None means "people, but no
-    usable boxes": the caller must then blur everything (fail closed)."""
+    """Model boxes (0-1000) -> padded pixel boxes. None means "cannot trust
+    this answer": the caller must then blur everything (fail closed).
+
+    Only an answer of exactly the asked shape counts: a dict with a boolean
+    "people" and a list "faces". Anything else, including a missing "people",
+    is treated as unknown rather than as "no faces"."""
+    if (not isinstance(answer, dict) or not isinstance(answer.get("people"), bool)
+            or not isinstance(answer.get("faces"), list)):
+        return None
     boxes = []
-    for b in answer.get("faces") or []:
+    for b in answer["faces"]:
         try:
             x1, y1, x2, y2 = (float(v) for v in b)
         except (TypeError, ValueError):
@@ -160,8 +168,8 @@ def face_boxes(answer, w, h):
         pw, ph = (x2 - x1) * 0.35, (y2 - y1) * 0.35  # pad: model boxes run tight
         boxes.append((max(0, int((x1 - pw) * w / 1000)), max(0, int((y1 - ph) * h / 1000)),
                       min(w, int((x2 + pw) * w / 1000)), min(h, int((y2 + ph) * h / 1000))))
-    if answer.get("people") and not boxes:
-        return None
+    if (answer["people"] or answer["faces"]) and not boxes:
+        return None  # people reported, or boxes sent but none usable
     return boxes
 
 
@@ -171,7 +179,7 @@ def blur_faces(path, answer):
     with Image.open(path) as im:
         im = ImageOps.exif_transpose(im).convert("RGB")
     w, h = im.size
-    boxes = face_boxes(answer, w, h) if answer is not None else None
+    boxes = face_boxes(answer, w, h)
     if boxes is None:
         im = im.filter(ImageFilter.GaussianBlur(max(w, h) / 40))
         n = -1
@@ -280,12 +288,17 @@ def watcher(store, args):
 def prune(store, args):
     cutoff = (dt.datetime.now() - dt.timedelta(days=store.retention_days())).isoformat()
     for pid, f in store.q("SELECT id,file FROM photos WHERE taken_at < ?", (cutoff,)):
-        store.q("DELETE FROM sightings WHERE photo_id=?", (pid,))
-        store.q("DELETE FROM photos WHERE id=?", (pid,))
+        # File first: if it cannot be deleted, keep its rows so the next pass
+        # tries again, instead of leaving an untracked photo on disk forever.
         try:
             os.remove(os.path.join(args.data, "photos", f))
-        except OSError:
+        except FileNotFoundError:
             pass
+        except OSError as e:
+            print(f"[retention] could not delete {f}, will retry: {e}", flush=True)
+            continue
+        store.q("DELETE FROM sightings WHERE photo_id=?", (pid,))
+        store.q("DELETE FROM photos WHERE id=?", (pid,))
 
 
 def nice_time(iso):

@@ -43,13 +43,19 @@ class FaceBlur(unittest.TestCase):
         self.assertGreater(x2, 600)
         self.assertLess(y1, 200)
         self.assertGreater(y2, 300)
-        (_, _, x2, y2), = ww.face_boxes({"faces": [[900, 900, 1000, 1000]]}, 100, 100)
+        (_, _, x2, y2), = ww.face_boxes({"people": True, "faces": [[900, 900, 1000, 1000]]}, 100, 100)
         self.assertEqual((x2, y2), (100, 100))
 
     def test_people_without_usable_boxes_fails_closed(self):
         self.assertIsNone(ww.face_boxes({"people": True, "faces": []}, 10, 10))
         self.assertIsNone(ww.face_boxes({"people": True, "faces": [["x"], [1, 2]]}, 10, 10))
         self.assertEqual(ww.face_boxes({"people": False, "faces": []}, 10, 10), [])
+
+    def test_answers_of_the_wrong_shape_fail_closed(self):
+        for bad in [None, [], "no faces", {}, {"faces": []}, {"people": "no", "faces": []},
+                    {"people": False}, {"people": False, "faces": "none"},
+                    {"people": False, "faces": [["x"]]}]:
+            self.assertIsNone(ww.face_boxes(bad, 10, 10), bad)
 
     def _image(self, path):
         from PIL import Image
@@ -134,6 +140,24 @@ class PublishFlow(unittest.TestCase):
         self.assertEqual(self.photos(), [])
         self.assertTrue(os.path.exists(self.src))                 # retried on restart
         self.assertEqual(self.store.q("SELECT COUNT(*) FROM photos"), [(0,)])
+
+    def test_retention_keeps_the_row_when_the_file_cannot_be_deleted(self):
+        p = os.path.join(self.tmp.name, "photos", "old.png")
+        open(p, "wb").close()
+        self.store.q("INSERT INTO photos(file,taken_at) VALUES('old.png','2000-01-01T00:00:00')")
+        real_remove = os.remove
+
+        def stuck(path):
+            raise PermissionError("busy")
+        ww.os.remove = stuck
+        try:
+            ww.prune(self.store, self.args)
+        finally:
+            ww.os.remove = real_remove
+        self.assertEqual(self.store.q("SELECT file FROM photos"), [("old.png",)])  # retried later
+        ww.prune(self.store, self.args)
+        self.assertEqual(self.store.q("SELECT COUNT(*) FROM photos"), [(0,)])
+        self.assertFalse(os.path.exists(p))
 
     def test_rotated_phone_photo_is_upright_before_the_model_sees_it(self):
         from PIL import Image
