@@ -44,7 +44,12 @@ above) and moves to `base/data/photos/`.
   names, places and positions, or one of a small fixed set of narrative words
   (`RECAP_WORDS`). So a name, a family word, another language, leftover
   `<think>` reasoning or an invented detail all get the plain summary instead;
-  an allowlist, because a list of person words can never be complete. The
+  an allowlist, because a list of person words can never be complete. Words
+  alone are not enough, so the story's claims are checked too: clause by
+  clause, every thing it names must have been seen at every place it names,
+  and every time it gives must be a time that thing was seen. "Your keys moved
+  to the kitchen counter" fails if the keys were never there, even though every
+  word is from the day. The
   plain summary is also used when the model is unreachable or slower than
   `--recap-timeout` seconds (default 60); then that day is not retried for 5
   minutes. A recap is cached until that day's own sightings change (another

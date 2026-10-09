@@ -458,10 +458,88 @@ def model_text_ok(text, rows):
     return True
 
 
+_TIME = re.compile(r"\b(\d{1,2})[:.](\d{2})\b")
+_CLAUSE = re.compile(r"[.!?;,]|\b(?:and|then|while|but)\b", re.I)
+
+
+def _words(text):
+    """tokens() with possessives folded: "sofa's" -> "sofa"."""
+    return [w[:-2] if w.endswith("'s") else w for w in tokens(text)]
+
+
+def _forms(phrase):
+    """A name's words, plus singular/plural forms of its last word."""
+    *head, last = phrase
+    alts = {last, last + "s", last + "es"}
+    if last.endswith("es"):
+        alts.add(last[:-2])
+    if last.endswith("s"):
+        alts.add(last[:-1])
+    return {tuple(head) + (a,) for a in alts if a}
+
+
+def _take(words, phrases):
+    """Find whole phrases (longest first) in a word list; return what was found
+    and the words left over, with every found phrase removed."""
+    found, left, i = set(), list(words), 0
+    by_len = sorted(phrases.items(), key=lambda kv: -len(kv[0]))
+    while i < len(left):
+        for form, canon in by_len:
+            n = len(form)
+            if tuple(left[i:i + n]) == form:
+                found.add(canon)
+                left[i:i + n] = [None] * n
+                break
+        i += 1
+    return found, [w for w in left if w is not None]
+
+
+def claims_ok(text, rows):
+    """The model's sentences must be TRUE of the day, not only built from its
+    words (Codex review of #17: "your keys moved from the kitchen counter to the
+    desk at 23:59" passes the word check when keys and a wallet were each seen
+    once). Clause by clause: every thing it names was seen at every place it
+    names, and every time it gives is a time one of those things was seen (at a
+    named place, when it names one). A clause without a thing takes the previous
+    clause's ("...and later moved to the desk"). A clause that names a place or
+    a time with no thing to tie it to, or a fragment of a place's name ("the
+    hallway" for "hallway table"), cannot be checked and fails."""
+    seen = {}                                   # thing -> place -> {HH:MM}
+    for name, place, _rel, ts in rows:          # stored values are HTML-escaped
+        thing = " ".join(_words(html.unescape(name)))
+        where = " ".join(_words(html.unescape(place or "")))
+        seen.setdefault(thing, {}).setdefault(where, set()).add(hhmm(ts))
+    thing_forms = {f: t for t in seen for f in _forms(tuple(t.split()))}
+    place_forms = {tuple(p.split()): p for t in seen for p in seen[t] if p}
+    place_only = ({w for p in place_forms.values() for w in p.split()}
+                  - {w for t in seen for w in t.split()}
+                  - {w for _n, _p, rel, _t in rows for w in _words(html.unescape(rel or ""))}
+                  - RECAP_WORDS)
+    things = set()
+    for clause in _CLAUSE.split(text):
+        times = {f"{int(h):02d}:{m}" for h, m in _TIME.findall(clause)}
+        words = [w for w in _words(_TIME.sub(" ", clause)) if not w.isdigit()]
+        named, left = _take(words, thing_forms)
+        places, left = _take(left, place_forms)
+        if any(w in place_only for w in left):
+            return False                        # part of a place's name, not the place
+        things = named or things
+        if (places or times) and not things:
+            return False                        # nothing to check the claim against
+        for t in things:
+            if any(p not in seen[t] for p in places):
+                return False                    # that thing was never seen there
+        for tm in times:
+            if not any(tm in seen[t][p] for t in things for p in (places or seen[t])):
+                return False                    # no sighting of it at that time
+    return True
+
+
 def model_story(text, rows):
     """The model's answer, or ValueError if it cannot be shown: reasoning left
     in (a thinking template that opens <think> in the prompt, or a cut-off),
-    empty, mentioning a person, or using words the day does not contain."""
+    empty, mentioning a person, using words the day does not contain, or
+    claiming a thing was somewhere, or at a time, it was not."""
     if "</think>" in text:
         text = text.rsplit("</think>", 1)[1]
     if "<think" in text:
@@ -471,6 +549,8 @@ def model_story(text, rows):
         raise ValueError("empty")
     if PEOPLE.search(text) or not model_text_ok(text, rows):
         raise ValueError("words outside the day's sightings")
+    if not claims_ok(text, rows):
+        raise ValueError("a claim the day's sightings do not support")
     return text
 
 

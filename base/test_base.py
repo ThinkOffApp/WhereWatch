@@ -255,6 +255,7 @@ class Recap(unittest.TestCase):
                      "Your glasses case was at the kitchen table beside the coffee machine at 08:10. "
                      "Your headphones were at the sofa's left armrest at 12:05."]:
             self.assertTrue(ww.model_text_ok(text, rows), text)
+            self.assertTrue(ww.claims_ok(text, rows), text)
 
     def test_only_that_days_sightings_reach_the_model(self):
         self.model("Your keys were on the hallway table.")
@@ -287,6 +288,25 @@ class Recap(unittest.TestCase):
             for word in ("She", "They", "held", "Someone", "Anna", "wife", "herself", "Hän", "dog"):
                 self.assertNotIn(word, r["summary"], bad)
 
+    def test_claims_must_be_true_of_the_day_not_just_its_words(self):
+        # Codex review of #17: every word below is in the day, every claim is false.
+        # Day: keys desk 08:00 then hallway table 10:15, wallet kitchen counter 09:30, mug shelf 10:16.
+        for false in ["Your keys moved from the kitchen counter to the desk at 23:59.",   # never there, never then
+                      "Your wallet was on the desk at 09:30.",                            # wrong place
+                      "Your wallet was on the kitchen counter at 10:15.",                 # wrong time
+                      "Your keys and wallet were on the hallway table at 10:15.",         # one of two wrong
+                      "Your keys were in the hallway at 10:15.",                          # a fragment of a place
+                      "Then the desk at 08:00."]:                                          # no thing to check
+            self.fresh()
+            self.model(false)
+            r = self.recap()
+            self.assertEqual(r["source"], "plain", false)
+        for true in ["Your keys were on the desk at 08:00 and moved to the hallway table at 10:15.",
+                     "Your wallet was on the kitchen counter at 09:30, then your mug on the o'brien shelf at 10:16."]:
+            self.fresh()
+            self.model(true)
+            self.assertEqual(self.recap()["source"], "model", true)
+
     def test_model_failure_falls_back_to_plain_last_seen(self):
         self.model(TimeoutError("slow"))
         r = self.recap()
@@ -310,9 +330,9 @@ class Recap(unittest.TestCase):
         self.assertTrue(line.endswith("; and 3 more."))
 
     def test_reasoning_never_reaches_the_card(self):
-        self.model("<think>the user wants a recap</think> Your mug is on the shelf.")
-        self.assertTrue(self.recap()["summary"].startswith("Your mug is on the shelf. Last seen:"))
-        for leaky in ["Okay, the user wants a recap of keys.</think>Your mug is on the shelf.",  # template opened <think>
+        self.model("<think>the user wants a recap</think> Your mug is on the o'brien shelf.")
+        self.assertTrue(self.recap()["summary"].startswith("Your mug is on the o&#x27;brien shelf. Last seen:"))
+        for leaky in ["Okay, the user wants a recap of keys.</think>Your mug is on the o'brien shelf.",  # template opened <think>
                       "<think>Okay, let me go through the sightings. At 08:00 the keys"]:          # cut off mid-thought
             self.fresh()
             self.model(leaky)
