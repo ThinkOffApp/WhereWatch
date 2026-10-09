@@ -67,7 +67,7 @@
     async objects() { return { objects: OBJECTS }; },
     async timeline() { return { day: "today", events: TIMELINE }; },
     async recap() {
-      return { day: "today", source: "model", sightings: TIMELINE.length, things: 4, places: 4,
+      return { day: "today", source: "demo", sightings: TIMELINE.length, things: 4, places: 4,
                summary: "Your glasses case sat by the coffee machine on the kitchen table late in the morning. " +
                         "In the afternoon your headphones went onto the sofa's left armrest, and your backpack " +
                         "and keys came home last: keys on the hallway table beside the bowl at 17:42." };

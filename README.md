@@ -108,7 +108,8 @@ put something beats hoping the camera noticed.
 conversations all day so you can ask about your day afterwards. WhereWatch
 does not: an always-on mic records other people, which breaks
 things-not-people and needs everyone's consent. This branch keeps the mic
-trigger-only and builds the day recap from things and the wearer's own words.
+trigger-only and builds the day recap from things only (plus the wearer's own
+voice tags, once those exist).
 Changing that is a product decision, not a setting.
 
 ### Interfaces (the family pattern: the agent is the front door)

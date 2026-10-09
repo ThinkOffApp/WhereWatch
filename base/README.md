@@ -39,12 +39,17 @@ above) and moves to `base/data/photos/`.
   The "Last seen: ..." line after it is computed from the index and never
   written by the model, because the one fact that must be right is where things
   are now (a live test caught Qwen3-VL-8B claiming everything ended up on the
-  desk). The model sees only the day's people-free sightings; an answer that
-  still mentions a person, is empty, or does not arrive within
-  `--recap-timeout` seconds (default 60) is replaced by a plain summary. A
-  recap is cached until that day's sightings change; after a model failure the
-  plain summary is served for 5 minutes before the model is tried again.
-  Measured: about 4 s for a 7-sighting day on one DGX Spark.
+  desk). The model sees only the day's people-free sightings, and its answer
+  is shown only if every word in it is a time, a word from that day's thing
+  names, places and positions, or one of a small fixed set of narrative words
+  (`RECAP_WORDS`). So a name, a family word, another language, leftover
+  `<think>` reasoning or an invented detail all get the plain summary instead;
+  an allowlist, because a list of person words can never be complete. The
+  plain summary is also used when the model is unreachable or slower than
+  `--recap-timeout` seconds (default 60); then that day is not retried for 5
+  minutes. A recap is cached until that day's own sightings change (another
+  day's photos do not invalidate it), and simultaneous requests share one
+  model call. Measured: about 4 s for a 7-sighting day on one DGX Spark.
 - Photo time comes from the JPEG's EXIF date, else the file time.
 - Retention deletes photos and their index rows after N days (default 30).
 - Everything binds to 127.0.0.1. Nothing leaves the box.

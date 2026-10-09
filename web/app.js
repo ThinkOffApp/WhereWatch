@@ -14,7 +14,18 @@ const api = {
   ask: q => api.call("ask?q=" + encodeURIComponent(q), () => WW_API.ask(q)),
   objects: () => api.call("objects", () => WW_API.objects()),
   timeline: () => api.call("timeline", () => WW_API.timeline()),
-  recap: () => api.call("recap", () => WW_API.recap()),
+  // The recap never falls back to the canned demo day while a real base is
+  // answering: a failed or slow recap on a live base hides the card instead.
+  async recap() {
+    try {
+      const r = await fetch("/api/recap");
+      if (r.ok) return await r.json();
+    } catch { /* fall through */ }
+    try {
+      if ((await fetch("/api/status")).ok) return null;
+    } catch { /* no base: demo mode */ }
+    return { ...(await WW_API.recap()), source: "demo" };
+  },
   status: () => api.call("status", () => WW_API.status()),
 };
 
@@ -182,16 +193,18 @@ $("#ask-form").addEventListener("submit", async e => {
   const r = await api.recap();
   const box = $("#day-recap");
   if (!box || !r || !r.summary || !r.sightings) return;
+  const label = { model: "summarised on your base station", plain: "plain summary",
+                  demo: "demo data, no base station connected" }[r.source] || "";
   // summary arrives HTML-escaped from the base, like every other model text
   box.innerHTML = `<div>
       <div class="what">🗓️ Your day</div>
       <div class="where">${r.summary}</div>
-      <div class="conf">${r.source === "model" ? "summarised on your base station" : "plain summary"} · tap to hear it</div>
+      <div class="conf">${label}</div>
+      <button type="button" class="hear">🔊 Hear it</button>
     </div>`;
   box.classList.remove("hidden");
-  const say = () => speak(box.querySelector(".where").textContent);
-  box.addEventListener("click", say);
-  box.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); say(); } });
+  box.querySelector(".hear").addEventListener("click", () =>
+    speak(box.querySelector(".where").textContent));
 })();
 
 /* ---- Map: place clusters always; Leaflet map only if GPS pins exist ---- */
