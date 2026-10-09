@@ -104,6 +104,13 @@ whisper transcribes it locally (the same stack the car uses), and the text
 is pinned to that moment's photo and place in the index. Saying where you
 put something beats hoping the camera noticed.
 
+**Open decision (9 Oct 2026): ambient audio.** Audio-memory wearables record
+conversations all day so you can ask about your day afterwards. WhereWatch
+does not: an always-on mic records other people, which breaks
+things-not-people and needs everyone's consent. This branch keeps the mic
+trigger-only and builds the day recap from things and the wearer's own words.
+Changing that is a product decision, not a setting.
+
 ### Interfaces (the family pattern: the agent is the front door)
 
 - **Room agent:** WhereWatch joins your team rooms like its siblings - ask
@@ -151,6 +158,12 @@ hardware:
 - **Before/after:** "what did the desk look like on Monday" - placement
   history doubles as a room diary.
 - **Arrivals:** parcels, deliveries, things that appeared rather than moved.
+- **Your day, recapped:** "what happened today" in a few sentences, written
+  by the base station's local model from the day's sightings, with where each
+  thing was last seen taken straight from the index (built in `base/`).
+- **Tasks, told not seen (planned):** a voice tag like "remind me to call the
+  bank" becomes a task note, and "what do I still need to do" lists the open
+  ones. Same trigger-only mic, same note records.
 
 Every one of these is a query over the SAME captioned-stills index; none
 breaks the two-device boundary or the things-not-people rule.

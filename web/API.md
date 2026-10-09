@@ -10,6 +10,12 @@ until the backend exists, `mock.js` serves the same shapes from canned data
   action, place, relative_position, photo_url, confidence}]}`
 - `GET /api/objects` -> `{objects: [{name, last_place, last_seen, photo_url,
   pin: {kind: "place"|"gps", place?, lat?, lon?}}]}`  (Map tab feeds on this)
+- `GET /api/recap?day=2026-10-09` -> `{day, summary, source: "model"|"plain",
+  sightings, things, places}`  (the Timeline's "Your day" card; `day` defaults
+  to today. `summary` is HTML-escaped text: the local model's 1-3 sentence
+  story of the day plus a "Last seen: ..." line that always comes from the
+  index, never from the model. `source` is "plain" when there was no usable
+  model answer.)
 - `GET /api/checks` -> `{checks: [{q, emoji, label, verb, place, time,
   photo_url, yes}]}`  (the Did I? tab's one-tap checks)
 - `GET /api/status` -> `{pendant_online, battery_pct, mode: "stream"|"stills",

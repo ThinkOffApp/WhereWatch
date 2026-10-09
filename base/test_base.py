@@ -179,6 +179,136 @@ class PublishFlow(unittest.TestCase):
             self.assertNotIn(0x0112, n.getexif())
 
 
+class Recap(unittest.TestCase):
+    """The day recap: model-written when trustworthy, plain otherwise, never people."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = ww.Store(os.path.join(self.tmp.name, "i.sqlite"))
+        self.args = type("A", (), {"vision": "x", "model": "m", "recap_timeout": 1})()
+        self.real = ww.ask_text
+        self.calls = []
+        ww._recap_cache.clear()
+        self.day = "2026-10-09"
+        for t, name, place, rel in [("08:00:00", "keys", "desk", "left"),
+                                    ("08:01:00", "keys", "desk", "left"),
+                                    ("09:30:00", "wallet", "kitchen counter", ""),
+                                    ("10:15:00", "keys", "hallway table", "beside the bowl"),
+                                    ("10:16:00", "mug", "o&#x27;brien shelf", "")]:
+            self.add(t, name, place, rel)
+        self.add("23:59:00", "glasses", "sofa", "", day="2026-10-08")  # another day
+
+    def tearDown(self):
+        ww.ask_text = self.real
+        self.tmp.cleanup()
+
+    def add(self, t, name, place, rel, day=None):
+        when = f"{day or self.day}T{t}"
+        self.store.q("INSERT INTO photos(file,taken_at,place) VALUES(?,?,?)", (f"{when}-{name}.jpg", when, place))
+        pid = self.store.q("SELECT MAX(id) FROM photos")[0][0]
+        self.store.q("INSERT INTO sightings(photo_id,name,aliases,place,relative_position,confidence,seen_at)"
+                     " VALUES(?,?,'[]',?,?,0.9,?)", (pid, name, place, rel, when))
+
+    def model(self, answer):
+        def fake(url, model, prompt, timeout):
+            self.calls.append(prompt)
+            if isinstance(answer, BaseException):
+                raise answer
+            return answer
+        ww.ask_text = fake
+
+    def test_empty_day_needs_no_model(self):
+        self.model("should not be asked")
+        r = ww.recap(self.store, self.args, "2026-01-01")
+        self.assertEqual((r["source"], r["sightings"], self.calls), ("plain", 0, []))
+
+    def test_model_summary_is_used_and_escaped(self):
+        self.model("Your keys <b>moved</b> from the desk to the hallway table at 10:15.")
+        r = ww.recap(self.store, self.args, self.day)
+        self.assertEqual(r["source"], "model")
+        self.assertNotIn("<", r["summary"])
+        self.assertEqual((r["sightings"], r["things"], r["places"]), (5, 3, 4))
+
+    def test_only_that_days_sightings_reach_the_model(self):
+        self.model("Your keys were on the hallway table.")
+        ww.recap(self.store, self.args, self.day)
+        prompt = self.calls[0]
+        self.assertNotIn("glasses", prompt)
+        self.assertEqual(prompt.count("keys at desk"), 1)          # repeat collapsed
+        self.assertIn("o'brien shelf", prompt)                     # stored escapes undone for the model
+        self.assertIn("10:15 keys at hallway table (beside the bowl)", prompt)
+
+    def test_a_person_in_the_answer_falls_back_to_plain(self):
+        for bad in ["She left your keys on the desk.", "They moved the wallet.",
+                    "Your keys were held at 10:15.", "Someone took the mug."]:
+            ww._recap_cache.clear()
+            self.model(bad)
+            r = ww.recap(self.store, self.args, self.day)
+            self.assertEqual(r["source"], "plain", bad)
+            self.assertFalse(ww.PEOPLE.search(r["summary"]), bad)
+
+    def test_model_failure_falls_back_to_plain_last_seen(self):
+        self.model(TimeoutError("slow"))
+        r = ww.recap(self.store, self.args, self.day)
+        self.assertEqual(r["source"], "plain")
+        self.assertIn("keys at hallway table (10:15)", r["summary"])
+        self.assertNotIn("keys at desk", r["summary"])               # last place only
+        self.assertIn("between 08:00 and 10:16", r["summary"])
+
+    def test_where_things_are_now_never_comes_from_the_model(self):
+        # Seen live on Qwen3-VL-8B (9 Oct): "The last place each thing was seen was the desk."
+        self.model("Your keys moved to the hallway table. Everything ended up on the desk.")
+        s = ww.recap(self.store, self.args, self.day)["summary"]
+        self.assertTrue(s.startswith("Your keys moved"))
+        self.assertTrue(s.endswith("Last seen: mug at o&#x27;brien shelf (10:16); keys at hallway table (10:15); "
+                                   "wallet at kitchen counter (09:30)."), s)
+
+    def test_last_seen_lists_the_newest_and_counts_the_rest(self):
+        rows = [(f"t{i}", "desk", "", f"{self.day}T10:{i:02d}:00") for i in range(9)]
+        line = ww.last_seen(rows)
+        self.assertTrue(line.startswith("Last seen: t8 at desk (10:08)"))
+        self.assertTrue(line.endswith("; and 3 more."))
+
+    def test_thinking_and_empty_answers(self):
+        self.model("<think>the user wants a recap</think> Your mug is on the shelf.")
+        s = ww.recap(self.store, self.args, self.day)["summary"]
+        self.assertTrue(s.startswith("Your mug is on the shelf. Last seen:"), s)
+        ww._recap_cache.clear()
+        self.model("   ")
+        self.assertEqual(ww.recap(self.store, self.args, self.day)["source"], "plain")
+
+    def test_cached_until_the_day_changes(self):
+        self.model("Your keys were on the hallway table.")
+        ww.recap(self.store, self.args, self.day)
+        ww.recap(self.store, self.args, self.day)
+        self.assertEqual(len(self.calls), 1)                        # same index, no second call
+        self.add("11:00:00", "charger", "desk", "")
+        ww.recap(self.store, self.args, self.day)
+        self.assertEqual(len(self.calls), 2)                        # new sighting, new recap
+
+    def test_a_failure_is_retried_later_not_cached_forever(self):
+        self.model(TimeoutError("slow"))
+        ww.recap(self.store, self.args, self.day)
+        ww.recap(self.store, self.args, self.day)
+        self.assertEqual(len(self.calls), 1)                        # not hammered while down
+        real_time = ww.time.time
+        ww.time.time = lambda: real_time() + ww.RECAP_FAIL_SECONDS + 1
+        try:
+            ww.recap(self.store, self.args, self.day)
+        finally:
+            ww.time.time = real_time
+        self.assertEqual(len(self.calls), 2)
+
+    def test_long_days_keep_the_newest_lines(self):
+        rows = [(f"thing{i}", f"place{i}", "", f"{self.day}T{i // 60:02d}:{i % 60:02d}:00")
+                for i in range(ww.RECAP_LINES + 30)]
+        text = ww.digest(rows)
+        self.assertTrue(text.startswith("(plus 30 earlier sightings)"))
+        self.assertIn(f"thing{ww.RECAP_LINES + 29} ", text)
+        self.assertNotIn("thing0 ", text)
+
+
 class Clean(unittest.TestCase):
     def test_markup_cannot_reach_the_page(self):
         self.assertNotIn("<", ww.clean("<img src=x onerror=alert(1)>"))

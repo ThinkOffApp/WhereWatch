@@ -14,6 +14,7 @@ const api = {
   ask: q => api.call("ask?q=" + encodeURIComponent(q), () => WW_API.ask(q)),
   objects: () => api.call("objects", () => WW_API.objects()),
   timeline: () => api.call("timeline", () => WW_API.timeline()),
+  recap: () => api.call("recap", () => WW_API.recap()),
   status: () => api.call("status", () => WW_API.status()),
 };
 
@@ -171,9 +172,26 @@ $("#ask-form").addEventListener("submit", async e => {
       <span class="t">${e.time}</span>
       <img src="${e.photo_url}" alt="">
       <div class="desc"><b>${e.object}</b> ${e.action}
-        <div class="place">📍 ${e.place}${e.relative ? " — " + e.relative : ""}</div>
+        <div class="place">📍 ${e.place}${(e.relative_position || e.relative) ? " — " + (e.relative_position || e.relative) : ""}</div>
       </div>
     </div>`).join("");
+})();
+
+/* ---- Your day: the base station's recap above the timeline, spoken on tap ---- */
+(async () => {
+  const r = await api.recap();
+  const box = $("#day-recap");
+  if (!box || !r || !r.summary || !r.sightings) return;
+  // summary arrives HTML-escaped from the base, like every other model text
+  box.innerHTML = `<div>
+      <div class="what">🗓️ Your day</div>
+      <div class="where">${r.summary}</div>
+      <div class="conf">${r.source === "model" ? "summarised on your base station" : "plain summary"} · tap to hear it</div>
+    </div>`;
+  box.classList.remove("hidden");
+  const say = () => speak(box.querySelector(".where").textContent);
+  box.addEventListener("click", say);
+  box.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); say(); } });
 })();
 
 /* ---- Map: place clusters always; Leaflet map only if GPS pins exist ---- */

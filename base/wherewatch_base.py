@@ -11,7 +11,9 @@ Standard library plus Pillow (for face blurring), nothing else to install.
     -> SQLite index of things only (people are kept out by the prompt AND a
        word filter afterwards; a word filter cannot catch proper names or
        other languages, so this lowers the risk rather than guaranteeing it)
-    -> the existing web app's /api/* (web/API.md) answers from real data.
+    -> the existing web app's /api/* (web/API.md) answers from real data,
+       including /api/recap: the day in a few sentences (model-told story,
+       index-computed "last seen" line).
 
 Run:  python3 base/wherewatch_base.py --vision http://127.0.0.1:8095
 Then open http://127.0.0.1:8090/ (web app) and drop photos into base/data/inbox/.
@@ -333,6 +335,124 @@ def match(name, aliases, terms):
     return False
 
 
+RECAP_PROMPT = """You write a short recap of someone's day for a "where did I
+leave my things" memory. Below is everything their camera noticed that day:
+time, thing, and where it lay. Write 1 to 3 plain sentences addressed to them,
+in time order. Only a thing listed at two or more different places moved: say
+where it went and when. A thing listed at one place did not move: just say
+where it was ("your wallet was on the desk at 09:40"). Use only things, places
+and times from the list and never add anything that is not in it. NEVER mention or guess at people: no names, and do not use the
+words he, she, they, them or their. Do NOT end with a summary of where things
+are now; that line is added separately. Plain text only: no lists, no markdown.
+
+Sightings:
+"""
+
+RECAP_LINES = 120          # newest sightings the model sees; older ones are summarised by count
+RECAP_FAIL_SECONDS = 300   # after a model failure, serve the plain recap this long before retrying
+_recap_cache = {}
+_recap_lock = threading.Lock()
+
+
+def ask_text(url, model, prompt, timeout):
+    """Text-only chat completion on the same local server the photos use."""
+    body = {"model": model, "temperature": 0, "max_tokens": 300,
+            "messages": [{"role": "user", "content": prompt}]}
+    req = urllib.request.Request(url.rstrip("/") + "/v1/chat/completions",
+                                 json.dumps(body).encode(),
+                                 {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["choices"][0]["message"]["content"] or ""
+
+
+def day_sightings(store, day):
+    """(name, place, relative_position, seen_at) for one day, oldest first."""
+    return store.q("""SELECT s.name, s.place, s.relative_position, s.seen_at
+                      FROM sightings s JOIN photos p ON p.id = s.photo_id
+                      WHERE substr(s.seen_at, 1, 10) = ?
+                      ORDER BY s.seen_at, s.id""", (day,))
+
+
+def hhmm(iso):
+    return iso[11:16]
+
+
+def digest(rows):
+    """The model's input: one line per sighting, repeats of the same thing at
+    the same place collapsed, stored HTML escapes turned back into text."""
+    lines, prev = [], None
+    for name, place, rel, seen in rows:
+        if (name, place) == prev:
+            continue
+        prev = (name, place)
+        where = html.unescape(place or "an unknown spot") + (f" ({html.unescape(rel)})" if rel else "")
+        lines.append(f"{hhmm(seen)} {html.unescape(name)} at {where}")
+    if len(lines) > RECAP_LINES:
+        lines = [f"(plus {len(lines) - RECAP_LINES} earlier sightings)"] + lines[-RECAP_LINES:]
+    return "\n".join(lines)
+
+
+def last_seen(rows, limit=6):
+    """The one line that must be right, so it never comes from the model: the
+    newest place of the most recently seen things, straight from the index.
+    Built from stored values, which were escaped when they were indexed."""
+    last = {}
+    for name, place, _rel, seen in rows:
+        last[name] = (place, seen)
+    recent = sorted(last.items(), key=lambda kv: kv[1][1], reverse=True)
+    more = len(recent) - limit
+    listed = "; ".join(f"{n} at {p or 'an unknown spot'} ({hhmm(s)})" for n, (p, s) in recent[:limit])
+    return f"Last seen: {listed}" + (f"; and {more} more." if more > 0 else ".")
+
+
+def plain_recap(rows):
+    """No model needed: counts plus the last-seen line."""
+    if not rows:
+        return "Nothing seen that day."
+    things = len({r[0] for r in rows})
+    places = len({r[1] for r in rows if r[1]})
+    return (f"{things} thing{'s' if things != 1 else ''} seen in {places} "
+            f"place{'s' if places != 1 else ''} between {hhmm(rows[0][3])} and "
+            f"{hhmm(rows[-1][3])}. " + last_seen(rows))
+
+
+def recap(store, args, day):
+    """The day in a few sentences: the local model narrates what moved, and the
+    last-seen line is always computed from the index, never written by the
+    model. With no usable model answer, a plain summary. Things, not people:
+    the model only ever sees the people-free index, and an answer that still
+    mentions a person is thrown away in favour of the plain summary."""
+    rows = day_sightings(store, day)
+    counts = {"day": day, "sightings": len(rows), "things": len({r[0] for r in rows}),
+              "places": len({r[1] for r in rows if r[1]})}
+    if not rows:
+        return {**counts, "summary": plain_recap(rows), "source": "plain"}
+    # A new or deleted sighting changes the key, so the recap follows the index.
+    key = (day, len(rows), rows[-1][3], store.q("SELECT MAX(id) FROM sightings")[0][0])
+    with _recap_lock:
+        hit = _recap_cache.get(key)
+    if hit and (hit[1] is None or hit[1] > time.time()):
+        return hit[0]
+    try:
+        text = ask_text(args.vision, args.model, RECAP_PROMPT + digest(rows),
+                        getattr(args, "recap_timeout", 60))
+        text = re.sub(r"<think>.*?</think>", " ", text, flags=re.S)
+        text = re.sub(r"\s+", " ", text).strip()
+        if not text or PEOPLE.search(text):
+            raise ValueError("empty recap or one that mentions a person")
+        # The model tells the story; where things are now comes from the index.
+        out = {**counts, "summary": clean(text, 600) + " " + last_seen(rows), "source": "model"}
+        expires = None
+    except Exception as e:
+        print(f"[recap] {day}: plain summary ({type(e).__name__})", flush=True)
+        out, expires = {**counts, "summary": plain_recap(rows), "source": "plain"}, time.time() + RECAP_FAIL_SECONDS
+    with _recap_lock:
+        if len(_recap_cache) > 16:
+            _recap_cache.clear()
+        _recap_cache[key] = (out, expires)
+    return out
+
+
 def make_handler(store, args):
     class H(SimpleHTTPRequestHandler):
         def __init__(self, *a, **k):
@@ -360,6 +480,15 @@ def make_handler(store, args):
                 return self.send_json(self.objects())
             if u.path == "/api/timeline":
                 return self.send_json(self.timeline(qs.get("day", [None])[0]))
+            if u.path == "/api/recap":
+                day = qs.get("day", [dt.date.today().isoformat()])[0]
+                try:
+                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+                        raise ValueError
+                    dt.date.fromisoformat(day)
+                except ValueError:
+                    return self.send_json({"error": "day must be YYYY-MM-DD"}, 400)
+                return self.send_json(recap(store, args, day))
             if u.path == "/api/checks":
                 return self.send_json({"checks": []})  # "Did I?" needs actions, not built yet
             if u.path == "/api/status":
@@ -443,6 +572,8 @@ def main():
     ap.add_argument("--port", type=int, default=8090)
     ap.add_argument("--poll", type=float, default=3.0)
     ap.add_argument("--timeout", type=float, default=180.0)
+    ap.add_argument("--recap-timeout", type=float, default=60.0,
+                    help="seconds the day recap waits for the model before using the plain summary")
     args = ap.parse_args()
     for d in ("inbox", "photos", "staging"):
         os.makedirs(os.path.join(args.data, d), exist_ok=True)

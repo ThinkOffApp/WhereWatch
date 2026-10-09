@@ -99,6 +99,8 @@ main { flex: 1; }
 .answer .when  { color: var(--dim); font-size: .9rem; }
 .answer .conf  { color: var(--dimmer); font-size: .8rem; margin-top: .5rem; }
 .answer .nope  { color: var(--dim); }
+.answer.recap  { margin-bottom: 1rem; cursor: pointer; }
+.answer.recap .where { line-height: 1.5; }
 
 /* Timeline */
 .timeline-head { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }
