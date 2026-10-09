@@ -34,6 +34,22 @@ above) and moves to `base/data/photos/`.
 - `/api/ask`, `/api/objects`, `/api/timeline`, `/api/status` and
   `POST /api/retention` answer from real data. `/api/checks` ("Did I?") returns
   an empty list until actions (locked, switched off) are indexed.
+- `/api/recap` is the Timeline's "Your day" card: the same local model, asked
+  in plain text, tells the day's story in 1-3 sentences (what moved, when).
+  The "Last seen: ..." line after it is computed from the index and never
+  written by the model, because the one fact that must be right is where things
+  are now (a live test caught Qwen3-VL-8B claiming everything ended up on the
+  desk). The model sees only the day's people-free sightings, and its answer
+  is shown only if every word in it is a time, a word from that day's thing
+  names, places and positions, or one of a small fixed set of narrative words
+  (`RECAP_WORDS`). So a name, a family word, another language, leftover
+  `<think>` reasoning or an invented detail all get the plain summary instead;
+  an allowlist, because a list of person words can never be complete. The
+  plain summary is also used when the model is unreachable or slower than
+  `--recap-timeout` seconds (default 60); then that day is not retried for 5
+  minutes. A recap is cached until that day's own sightings change (another
+  day's photos do not invalidate it), and simultaneous requests share one
+  model call. Measured: about 4 s for a 7-sighting day on one DGX Spark.
 - Photo time comes from the JPEG's EXIF date, else the file time.
 - Retention deletes photos and their index rows after N days (default 30).
 - Everything binds to 127.0.0.1. Nothing leaves the box.

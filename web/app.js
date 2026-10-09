@@ -14,6 +14,18 @@ const api = {
   ask: q => api.call("ask?q=" + encodeURIComponent(q), () => WW_API.ask(q)),
   objects: () => api.call("objects", () => WW_API.objects()),
   timeline: () => api.call("timeline", () => WW_API.timeline()),
+  // The recap never falls back to the canned demo day while a real base is
+  // answering: a failed or slow recap on a live base hides the card instead.
+  async recap() {
+    try {
+      const r = await fetch("/api/recap");
+      if (r.ok) return await r.json();
+    } catch { /* fall through */ }
+    try {
+      if ((await fetch("/api/status")).ok) return null;
+    } catch { /* no base: demo mode */ }
+    return { ...(await WW_API.recap()), source: "demo" };
+  },
   status: () => api.call("status", () => WW_API.status()),
 };
 
@@ -171,9 +183,28 @@ $("#ask-form").addEventListener("submit", async e => {
       <span class="t">${e.time}</span>
       <img src="${e.photo_url}" alt="">
       <div class="desc"><b>${e.object}</b> ${e.action}
-        <div class="place">📍 ${e.place}${e.relative ? " — " + e.relative : ""}</div>
+        <div class="place">📍 ${e.place}${(e.relative_position || e.relative) ? " — " + (e.relative_position || e.relative) : ""}</div>
       </div>
     </div>`).join("");
+})();
+
+/* ---- Your day: the base station's recap above the timeline, spoken on tap ---- */
+(async () => {
+  const r = await api.recap();
+  const box = $("#day-recap");
+  if (!box || !r || !r.summary || !r.sightings) return;
+  const label = { model: "summarised on your base station", plain: "plain summary",
+                  demo: "demo data, no base station connected" }[r.source] || "";
+  // summary arrives HTML-escaped from the base, like every other model text
+  box.innerHTML = `<div>
+      <div class="what">🗓️ Your day</div>
+      <div class="where">${r.summary}</div>
+      <div class="conf">${label}</div>
+      <button type="button" class="hear">🔊 Hear it</button>
+    </div>`;
+  box.classList.remove("hidden");
+  box.querySelector(".hear").addEventListener("click", () =>
+    speak(box.querySelector(".where").textContent));
 })();
 
 /* ---- Map: place clusters always; Leaflet map only if GPS pins exist ---- */

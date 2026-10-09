@@ -99,6 +99,13 @@ main { flex: 1; }
 .answer .when  { color: var(--dim); font-size: .9rem; }
 .answer .conf  { color: var(--dimmer); font-size: .8rem; margin-top: .5rem; }
 .answer .nope  { color: var(--dim); }
+.answer.recap  { margin-bottom: 1rem; }
+.answer.recap .where { line-height: 1.5; }
+.answer.recap .hear {
+  margin-top: .7rem; background: var(--card); color: var(--text);
+  border: 1px solid var(--edge); border-radius: 999px; padding: .35rem .9rem;
+  font: inherit; cursor: pointer;
+}
 
 /* Timeline */
 .timeline-head { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }

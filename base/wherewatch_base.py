@@ -11,7 +11,9 @@ Standard library plus Pillow (for face blurring), nothing else to install.
     -> SQLite index of things only (people are kept out by the prompt AND a
        word filter afterwards; a word filter cannot catch proper names or
        other languages, so this lowers the risk rather than guaranteeing it)
-    -> the existing web app's /api/* (web/API.md) answers from real data.
+    -> the existing web app's /api/* (web/API.md) answers from real data,
+       including /api/recap: the day in a few sentences (model-told story,
+       index-computed "last seen" line).
 
 Run:  python3 base/wherewatch_base.py --vision http://127.0.0.1:8095
 Then open http://127.0.0.1:8090/ (web app) and drop photos into base/data/inbox/.
@@ -333,6 +335,202 @@ def match(name, aliases, terms):
     return False
 
 
+RECAP_PROMPT = """You write a short recap of someone's day for a "where did I
+leave my things" memory. Below is everything their camera noticed that day:
+time, thing, and where it lay. Write 1 to 3 plain sentences addressed to them,
+in time order. Only a thing listed at two or more different places moved: say
+where it went and when. A thing listed at one place did not move: just say
+where it was ("your wallet was on the desk at 09:40"). Use only things, places
+and times from the list and never add anything that is not in it. NEVER
+mention or guess at people: no names, and do not use the words he, she, they,
+them or their. Do NOT end with a summary of where things are now; that line is
+added separately. Plain text only: no lists, no markdown.
+
+Sightings:
+"""
+
+# The model may only rephrase the day: every word of its answer must be a time,
+# a word from that day's thing names, places and positions, or one of these.
+# A name, a family word, another language or invented detail fails the check
+# and the plain summary is shown instead. An allowlist, because a list of
+# person words can never be complete.
+RECAP_WORDS = frozenset("""
+your you yours a an the and or but then later again also still back so
+was were is are has have had been be being moved move moves went go goes came
+come stayed stays remained remain left lay lain sat sitting lying spent found
+appeared showed turned ended
+to from at on in into onto by near beside next under over behind between
+across of off up down with without inside outside top bottom side front
+it its it's this that these those same another other there here where when
+while after before until since around about first then finally last earlier
+day today morning noon midday afternoon evening night am pm o'clock all both
+each one two three several some no not only just again once twice
+place spot seen noticed spotted""".split())
+
+RECAP_LINES = 120          # newest changes the model sees; older ones are summarised by count
+RECAP_FAIL_SECONDS = 300   # after a model failure, that day gets the plain recap this long
+_recap_cache = {}          # key -> finished recap (model or deterministic fallback)
+_recap_backoff = {}        # day -> time until which the model is not asked again
+_recap_inflight = {}       # key -> Event, so concurrent requests share one model call
+_recap_lock = threading.Lock()
+
+
+def ask_text(url, model, prompt, timeout):
+    """Text-only chat completion on the same local server the photos use."""
+    body = {"model": model, "temperature": 0, "max_tokens": 300,
+            "messages": [{"role": "user", "content": prompt}]}
+    req = urllib.request.Request(url.rstrip("/") + "/v1/chat/completions",
+                                 json.dumps(body).encode(),
+                                 {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["choices"][0]["message"]["content"] or ""
+
+
+def day_sightings(store, day):
+    """(id, name, place, relative_position, seen_at) for one day, oldest first."""
+    return store.q("""SELECT s.id, s.name, s.place, s.relative_position, s.seen_at
+                      FROM sightings s JOIN photos p ON p.id = s.photo_id
+                      WHERE substr(s.seen_at, 1, 10) = ?
+                      ORDER BY s.seen_at, s.id""", (day,))
+
+
+def hhmm(iso):
+    return iso[11:16]
+
+
+def digest(rows):
+    """The model's input: a line each time a thing is seen somewhere new (one
+    photo often holds several things, so this is tracked per thing), stored
+    HTML escapes turned back into text."""
+    lines, where_now = [], {}
+    for name, place, rel, seen in rows:
+        if where_now.get(name) == place:
+            continue
+        where_now[name] = place
+        where = html.unescape(place or "an unknown spot") + (f" ({html.unescape(rel)})" if rel else "")
+        lines.append(f"{hhmm(seen)} {html.unescape(name)} at {where}")
+    if len(lines) > RECAP_LINES:
+        lines = [f"(plus {len(lines) - RECAP_LINES} earlier changes)"] + lines[-RECAP_LINES:]
+    return "\n".join(lines)
+
+
+def last_seen(rows, limit=6):
+    """The one line that must be right, so it never comes from the model: the
+    newest place of the most recently seen things, straight from the index.
+    Built from stored values, which were escaped when they were indexed."""
+    last = {}
+    for name, place, _rel, seen in rows:
+        last[name] = (place, seen)
+    recent = sorted(last.items(), key=lambda kv: kv[1][1], reverse=True)
+    more = len(recent) - limit
+    listed = "; ".join(f"{n} at {p or 'an unknown spot'} ({hhmm(s)})" for n, (p, s) in recent[:limit])
+    return f"Last seen: {listed}" + (f"; and {more} more." if more > 0 else ".")
+
+
+def plain_recap(rows):
+    """No model needed: counts plus the last-seen line."""
+    if not rows:
+        return "Nothing seen that day."
+    things = len({r[0] for r in rows})
+    places = len({r[1] for r in rows if r[1]})
+    return (f"{things} thing{'s' if things != 1 else ''} seen in {places} "
+            f"place{'s' if places != 1 else ''} between {hhmm(rows[0][3])} and "
+            f"{hhmm(rows[-1][3])}. " + last_seen(rows))
+
+
+def tokens(text):
+    return re.findall(r"[^\W\d_]+(?:'[^\W\d_]+)?|\d+", text.lower())
+
+
+def model_text_ok(text, rows):
+    """True only if every word is a time, a word from the day's sightings or a
+    RECAP_WORDS word. Plural and possessive forms of known words count."""
+    known = set(RECAP_WORDS)
+    for name, place, rel, _seen in rows:
+        known.update(tokens(html.unescape(f"{name} {place or ''} {rel or ''}")))
+    for w in tokens(text):
+        if w.isdigit() or w in known:
+            continue
+        base = w[:-2] if w.endswith("'s") else w
+        if base in known or base.rstrip("s") in known or base + "s" in known or base + "es" in known:
+            continue
+        return False
+    return True
+
+
+def model_story(text, rows):
+    """The model's answer, or ValueError if it cannot be shown: reasoning left
+    in (a thinking template that opens <think> in the prompt, or a cut-off),
+    empty, mentioning a person, or using words the day does not contain."""
+    if "</think>" in text:
+        text = text.rsplit("</think>", 1)[1]
+    if "<think" in text:
+        raise ValueError("unfinished reasoning")
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        raise ValueError("empty")
+    if PEOPLE.search(text) or not model_text_ok(text, rows):
+        raise ValueError("words outside the day's sightings")
+    return text
+
+
+def recap(store, args, day):
+    """The day in a few sentences: the local model retells what moved, and the
+    last-seen line is always computed from the index, never written by the
+    model. Things, not people: the model sees only that day's index rows, and
+    its answer is shown only if every word comes from those rows or a small
+    fixed vocabulary, so it cannot add a person the index does not already
+    hold; anything else gets the plain summary."""
+    full = day_sightings(store, day)
+    rows = [r[1:] for r in full]
+    counts = {"day": day, "sightings": len(rows), "things": len({r[0] for r in rows}),
+              "places": len({r[1] for r in rows if r[1]})}
+    plain = {**counts, "summary": plain_recap(rows), "source": "plain"}
+    if not rows:
+        return plain
+    ids = [r[0] for r in full]
+    key = (day, len(ids), sum(ids), max(ids))  # this day's rows only: any add or delete changes it
+    wait_s = getattr(args, "recap_timeout", 60) + 5
+    while True:
+        with _recap_lock:
+            if key in _recap_cache:
+                return _recap_cache[key]
+            if _recap_backoff.get(day, 0) > time.time():
+                return plain
+            ev = _recap_inflight.get(key)
+            if ev is None:
+                ev = _recap_inflight[key] = threading.Event()
+                break
+        if not ev.wait(wait_s):  # another request is still asking the model
+            return plain
+    try:
+        try:
+            text = ask_text(args.vision, args.model, RECAP_PROMPT + digest(rows),
+                            getattr(args, "recap_timeout", 60))
+        except Exception as e:  # model down or slow: plain for this day for a while
+            print(f"[recap] {day}: model unavailable, plain summary ({type(e).__name__})", flush=True)
+            with _recap_lock:
+                _recap_backoff[day] = time.time() + RECAP_FAIL_SECONDS
+            return plain
+        try:
+            # The model tells the story; where things are now comes from the index.
+            out = {**counts, "summary": clean(model_story(text, rows), 600) + " " + last_seen(rows),
+                   "source": "model"}
+        except ValueError as e:  # same input, same answer at temperature 0: keep the plain one
+            print(f"[recap] {day}: model answer not shown ({e}), plain summary", flush=True)
+            out = plain
+        with _recap_lock:
+            if len(_recap_cache) > 64:
+                _recap_cache.clear()
+            _recap_cache[key] = out
+            _recap_backoff.pop(day, None)
+        return out
+    finally:  # whatever happened, release anyone waiting on this key
+        with _recap_lock:
+            _recap_inflight.pop(key, None)
+        ev.set()
+
+
 def make_handler(store, args):
     class H(SimpleHTTPRequestHandler):
         def __init__(self, *a, **k):
@@ -360,6 +558,15 @@ def make_handler(store, args):
                 return self.send_json(self.objects())
             if u.path == "/api/timeline":
                 return self.send_json(self.timeline(qs.get("day", [None])[0]))
+            if u.path == "/api/recap":
+                day = qs.get("day", [dt.date.today().isoformat()])[0]
+                try:
+                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+                        raise ValueError
+                    dt.date.fromisoformat(day)
+                except ValueError:
+                    return self.send_json({"error": "day must be YYYY-MM-DD"}, 400)
+                return self.send_json(recap(store, args, day))
             if u.path == "/api/checks":
                 return self.send_json({"checks": []})  # "Did I?" needs actions, not built yet
             if u.path == "/api/status":
@@ -443,6 +650,8 @@ def main():
     ap.add_argument("--port", type=int, default=8090)
     ap.add_argument("--poll", type=float, default=3.0)
     ap.add_argument("--timeout", type=float, default=180.0)
+    ap.add_argument("--recap-timeout", type=float, default=60.0,
+                    help="seconds the day recap waits for the model before using the plain summary")
     args = ap.parse_args()
     for d in ("inbox", "photos", "staging"):
         os.makedirs(os.path.join(args.data, d), exist_ok=True)
